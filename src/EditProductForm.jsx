@@ -1,24 +1,37 @@
 import { useState } from "react";
 import { updateDoc, doc } from "firebase/firestore";
-import { db } from "./firebase";
-import categories from "./categories"; // ✅ import the shared categories list
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "./firebase";
+import categories from "./categories";
 
 function EditProductForm({ product, onCancel, onSave }) {
   const [name, setName] = useState(product.name);
   const [category, setCategory] = useState(product.category);
-  const [image, setImage] = useState(product.image);
+  const [imageUrl, setImageUrl] = useState(product.image);
+  const [newImageFile, setNewImageFile] = useState(null);
   const [description, setDescription] = useState(product.description);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const ref = doc(db, "products", product.id);
-      await updateDoc(ref, {
+      let finalImageUrl = imageUrl;
+
+      // Upload new image if one was selected
+      if (newImageFile) {
+        const imageRef = ref(storage, `product-images/${Date.now()}-${newImageFile.name}`);
+        await uploadBytes(imageRef, newImageFile);
+        finalImageUrl = await getDownloadURL(imageRef);
+      }
+
+      const refToProduct = doc(db, "products", product.id);
+      await updateDoc(refToProduct, {
         name,
         category,
-        image,
+        image: finalImageUrl,
         description,
       });
+
       onSave();
     } catch (err) {
       alert("Error updating product");
@@ -48,11 +61,27 @@ function EditProductForm({ product, onCancel, onSave }) {
         ))}
       </select>
 
+      {/* Preview current or newly selected image */}
+      {newImageFile ? (
+        <img
+          src={URL.createObjectURL(newImageFile)}
+          alt="Preview"
+          className="w-full h-48 object-cover rounded"
+        />
+      ) : imageUrl ? (
+        <img
+          src={imageUrl}
+          alt="Current"
+          className="w-full h-48 object-cover rounded"
+        />
+      ) : null}
+
+      {/* Image Upload Input */}
       <input
-        type="text"
-        value={image}
+        type="file"
+        accept="image/*"
         className="w-full p-2 border rounded"
-        onChange={(e) => setImage(e.target.value)}
+        onChange={(e) => setNewImageFile(e.target.files[0])}
       />
 
       <textarea

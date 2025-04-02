@@ -10,6 +10,8 @@ import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
 import { Link } from "react-router-dom";
 import categories from "./categories"; // ✅ Import your shared category list
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "./firebase";
 
 export default function AddItemForm() {
   const { user } = useAuth();
@@ -17,7 +19,7 @@ export default function AddItemForm() {
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState(categories[0]); // ✅ use the first category as default
-  const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
   const [description, setDescription] = useState("");
 
   const [suggestedMatch, setSuggestedMatch] = useState(null);
@@ -78,23 +80,37 @@ export default function AddItemForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
-      await addDoc(collection(db, "products"), {
+      let imageUrl = "";
+  
+      if (imageFile) {
+        console.log("Uploading image...");
+        const imageRef = ref(storage, `product-images/${Date.now()}-${imageFile.name}`);
+        const uploadResult = await uploadBytes(imageRef, imageFile);
+        console.log("Upload success:", uploadResult);
+  
+        imageUrl = await getDownloadURL(imageRef);
+        console.log("Image URL:", imageUrl);
+      }
+  
+      const docRef = await addDoc(collection(db, "products"), {
         name,
         category,
-        image,
+        image: imageUrl,
         description,
         createdAt: serverTimestamp(),
         addedBy: user.email,
       });
+  
+      console.log("✅ Product saved:", docRef.id);
       alert("Product added!");
       navigate("/");
     } catch (err) {
+      console.error("❌ Error submitting product:", err);
       alert("Error adding product");
-      console.error(err);
     }
-  };
+  };   
 
   return (
     <>
@@ -169,11 +185,10 @@ export default function AddItemForm() {
           </select>
 
           <input
-            type="url"
-            placeholder="Image URL"
+            type="file"
+            accept="image/*"
             className="w-full p-2 border rounded"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
+            onChange={(e) => setImageFile(e.target.files[0])}
           />
 
           <textarea
@@ -183,6 +198,14 @@ export default function AddItemForm() {
             onChange={(e) => setDescription(e.target.value)}
             required
           />
+
+          {imageFile && (
+            <img
+              src={URL.createObjectURL(imageFile)}
+              alt="Preview"
+              className="w-full h-48 object-cover rounded"
+            />
+          )}
 
           <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
             Submit Product
