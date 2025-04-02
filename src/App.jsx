@@ -139,7 +139,7 @@ export default function App() {
         </Link>
       </div>
 
-      <div className="max-w-xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-4">
+      <div className="w-full max-w-5xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-3">
         {categories.map((cat) => (
           <a
             key={cat}
