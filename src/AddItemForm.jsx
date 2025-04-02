@@ -9,13 +9,14 @@ import {
 import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
 import { Link } from "react-router-dom";
+import categories from "./categories"; // ✅ Import your shared category list
 
 export default function AddItemForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("Produce");
+  const [category, setCategory] = useState(categories[0]); // ✅ use the first category as default
   const [image, setImage] = useState("");
   const [description, setDescription] = useState("");
 
@@ -106,7 +107,6 @@ export default function AddItemForm() {
       <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded">
         <h2 className="text-2xl font-bold mb-4">Add a New Product</h2>
 
-        {/* ✅ Duplicate suggestion */}
         {checkingDuplicates && (
           <p className="text-sm text-gray-500 mb-4">
             Checking for similar items...
@@ -133,8 +133,6 @@ export default function AddItemForm() {
               >
                 Yes, that's it
               </button>
-
-
               <button
                 type="button"
                 className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded"
@@ -165,9 +163,9 @@ export default function AddItemForm() {
             onChange={(e) => setCategory(e.target.value)}
             className="w-full p-2 border rounded"
           >
-            <option>Produce</option>
-            <option>Frozen Foods</option>
-            <option>Desserts</option>
+            {categories.map((cat) => (
+              <option key={cat}>{cat}</option>
+            ))}
           </select>
 
           <input

@@ -13,6 +13,7 @@ import AuthForm from "./AuthForm";
 import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
 import ReviewList from "./ReviewList";
+import categories from "./categories";
 
 export default function App() {
   const { user, logout } = useAuth();
@@ -80,10 +81,10 @@ export default function App() {
     );
   });
 
-  // 🧹 Filter by category
-  const produce = filtered.filter((p) => p.category === "Produce");
-  const frozen = filtered.filter((p) => p.category === "Frozen Foods");
-  const desserts = filtered.filter((p) => p.category === "Desserts");
+  const categorized = categories.reduce((acc, cat) => {
+    acc[cat] = filtered.filter((p) => p.category === cat);
+    return acc;
+  }, {});
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans">
@@ -138,44 +139,30 @@ export default function App() {
         </Link>
       </div>
 
-      <div className="max-w-xl mx-auto px-4 mt-4 flex justify-center gap-4">
-        <a href="#produce" className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-          Produce
-        </a>
-        <a href="#frozen-foods" className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-          Frozen Foods
-        </a>
-        <a href="#desserts" className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-          Desserts
-        </a>
+      <div className="max-w-xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-4">
+        {categories.map((cat) => (
+          <a
+            key={cat}
+            href={`#${cat.toLowerCase().replace(/\s+/g, "-")}`}
+            className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+          >
+            {cat}
+          </a>
+        ))}
       </div>
 
-
       <main className="p-6 space-y-12">
-        <CategorySection
-          id="produce"
-          title="Produce"
-          products={produce}
-          reviews={reviews}
-          onReviewSubmit={handleReviewSubmit}
-          user={user}
-        />
-        <CategorySection
-          id="frozen-foods"
-          title="Frozen Foods"
-          products={frozen}
-          reviews={reviews}
-          onReviewSubmit={handleReviewSubmit}
-          user={user}
-        />
-        <CategorySection
-          id="desserts"
-          title="Desserts"
-          products={desserts}
-          reviews={reviews}
-          onReviewSubmit={handleReviewSubmit}
-          user={user}
-        />
+        {categories.map((cat) => (
+          <CategorySection
+            key={cat}
+            id={cat.toLowerCase().replace(/\s+/g, "-")}
+            title={cat}
+            products={categorized[cat] || []}
+            reviews={reviews}
+            onReviewSubmit={handleReviewSubmit}
+            user={user}
+          />
+        ))}
       </main>
     </div>
   );

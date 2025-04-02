@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "./firebase";
+import categories from "./categories"; // ✅ import the shared categories list
 
 function EditProductForm({ product, onCancel, onSave }) {
   const [name, setName] = useState(product.name);
@@ -34,27 +35,33 @@ function EditProductForm({ product, onCancel, onSave }) {
         onChange={(e) => setName(e.target.value)}
         required
       />
+
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
         className="w-full p-2 border rounded"
       >
-        <option>Produce</option>
-        <option>Frozen Foods</option>
-        <option>Desserts</option>
+        {categories.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
       </select>
+
       <input
         type="text"
         value={image}
         className="w-full p-2 border rounded"
         onChange={(e) => setImage(e.target.value)}
       />
+
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         className="w-full p-2 border rounded"
         required
       />
+
       <div className="flex justify-end gap-2">
         <button
           type="button"
