@@ -1,0 +1,31 @@
+[
+    {
+      "id": 1,
+      "name": "Organic Shredded Kale",
+      "image": "https://via.placeholder.com/300x200",
+      "description": "Fresh and triple-washed delicious kale.",
+      "category": "Produce"
+    },
+    {
+      "id": 2,
+      "name": "Pumpkin Gnocchi",
+      "image": "https://via.placeholder.com/300x200",
+      "description": "Delicious fall comfort food.",
+      "category": "Frozen Foods"
+    },
+    {
+      "id": 3,
+      "name": "Chocolate Lava Cake",
+      "image": "https://via.placeholder.com/300x200",
+      "description": "Rich, gooey, and microwavable.",
+      "category": "Desserts"
+    },
+    {
+      "id": 4,
+      "name": "Organic Baby Spinach",
+      "image": "https://via.placeholder.com/300x200",
+      "description": "Great for smoothies or salads.",
+      "category": "Produce"
+    }
+  ]
+  
