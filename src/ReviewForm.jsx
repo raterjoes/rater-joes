@@ -6,10 +6,12 @@ export default function ReviewForm({ onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ text, rating });
+    onSubmit({ text, rating, includeName });
     setText("");
     setRating(5);
   };
+
+  const [includeName, setIncludeName] = useState(true);
 
   return (
     <form onSubmit={handleSubmit} className="mt-4 space-y-2">
@@ -32,6 +34,18 @@ export default function ReviewForm({ onSubmit }) {
             </option>
           ))}
         </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="includeName"
+          checked={includeName}
+          onChange={(e) => setIncludeName(e.target.checked)}
+          className="w-4 h-4"
+        />
+        <label htmlFor="includeName" className="text-sm">
+          Include my username in this review
+        </label>
       </div>
 
       <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">

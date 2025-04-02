@@ -8,7 +8,8 @@ import {
   query,
   where,
   onSnapshot,
-  addDoc
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
@@ -21,26 +22,44 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
-
   const [editing, setEditing] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
 
+  // ✅ Fixed: fetch nickname + store with review
   const handleReviewSubmit = async (review) => {
     if (!user) return;
-  
+
+    const { text, rating, includeName } = review;
+
+    let nickname = null;
+    let userEmail = null;
+
+    if (includeName) {
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          nickname = userDoc.data().nickname || null;
+        }
+        userEmail = user.email;
+      } catch (err) {
+        console.error("Error fetching nickname:", err);
+      }
+    }
+
     try {
       await addDoc(collection(db, "reviews"), {
         productId: id,
-        text: review.text,
-        rating: review.rating,
-        userEmail: user.email,
-        createdAt: new Date()
+        text,
+        rating,
+        nickname: includeName ? nickname : null,
+        userEmail: includeName ? userEmail : null,
+        createdAt: serverTimestamp(),
       });
     } catch (err) {
       console.error("Failed to submit review:", err);
       alert("Failed to submit review.");
     }
-  };  
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -73,7 +92,6 @@ export default function ProductPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      {/* Clean top-aligned back link */}
       <div className="mb-6">
         <Link to="/" className="text-blue-600 hover:underline font-medium">
           ← Back to Home
@@ -126,7 +144,7 @@ export default function ProductPage() {
       )}
 
       {user ? (
-        <ReviewForm onSubmit={handleReviewSubmit} />
+        <ReviewForm onSubmit={handleReviewSubmit} productId={id} />
       ) : (
         <p className="text-sm italic text-gray-600 mb-4">
           Please log in to leave a review.
@@ -140,8 +158,12 @@ export default function ProductPage() {
             <div key={i} className="bg-gray-100 p-3 rounded">
               <div className="font-bold">{r.rating} ⭐</div>
               <p>{r.text}</p>
-              {r.userEmail && (
+              {r.nickname ? (
+                <p className="text-xs italic text-gray-600">by {r.nickname}</p>
+              ) : r.userEmail ? (
                 <p className="text-xs italic text-gray-600">by {r.userEmail}</p>
+              ) : (
+                <p className="text-xs italic text-gray-400">Anonymous</p>
               )}
             </div>
           ))

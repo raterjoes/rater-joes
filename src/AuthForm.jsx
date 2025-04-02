@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "./firebase"; // ✅ db was missing
 
 export default function AuthForm() {
   const { user, login, signup, logout } = useAuth();
@@ -9,6 +11,7 @@ export default function AuthForm() {
   const [mode, setMode] = useState("login");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [nickname, setNickname] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,10 +22,19 @@ export default function AuthForm() {
         await login(email, password);
       } else {
         await signup(email, password);
+
+        // ✅ Save nickname to Firestore under /users/{uid}
+        const currentUser = auth.currentUser;
+        await setDoc(doc(db, "users", currentUser.uid), {
+          email,
+          nickname: nickname || null,
+          createdAt: serverTimestamp(),
+        });
       }
 
       setEmail("");
       setPassword("");
+      setNickname("");
       navigate("/");
     } catch (err) {
       setError(err.message);
@@ -33,10 +45,7 @@ export default function AuthForm() {
     <>
       {/* Top-left home link */}
       <div className="absolute top-4 left-4">
-        <Link
-          to="/"
-          className="text-blue-600 hover:underline font-medium"
-        >
+        <Link to="/" className="text-blue-600 hover:underline font-medium">
           ← Back to Home
         </Link>
       </div>
@@ -68,6 +77,7 @@ export default function AuthForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+
             <input
               type="password"
               placeholder="Password"
@@ -76,6 +86,17 @@ export default function AuthForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+
+            {mode === "signup" && (
+              <input
+                type="text"
+                placeholder="Nickname / Username"
+                className="w-full p-2 border rounded"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                required
+              />
+            )}
 
             <button className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
               {mode === "login" ? "Log In" : "Create Account"}

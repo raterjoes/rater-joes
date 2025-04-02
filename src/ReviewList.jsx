@@ -8,8 +8,12 @@ export default function ReviewList({ reviews }) {
           <div key={i} className="bg-gray-100 p-2 rounded mb-2">
             <div className="font-bold">{r.rating} ⭐</div>
             <p className="text-sm mb-1">{r.text}</p>
-            {r.userEmail && (
-              <p className="text-xs text-gray-600 italic">by {r.userEmail}</p>
+            {r.nickname ? (
+              <p className="text-xs italic text-gray-600">by {r.nickname}</p>
+            ) : r.userEmail ? (
+              <p className="text-xs italic text-gray-600">by {r.userEmail}</p>
+            ) : (
+              <p className="text-xs italic text-gray-500">Anonymous</p>
             )}
           </div>
         ))}

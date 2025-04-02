@@ -4,6 +4,8 @@ import {
   addDoc,
   onSnapshot,
   serverTimestamp,
+  getDoc,
+  doc
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Link } from "react-router-dom";
@@ -45,9 +47,10 @@ export default function App() {
         loadedReviews[pid].push({
           text: data.text,
           rating: data.rating,
-          userEmail: data.userEmail,
+          userEmail: data.userEmail || null,
+          nickname: data.nickname || null,
           createdAt: data.createdAt?.toDate(),
-        });
+        });        
       });
       setReviews(loadedReviews);
     });
@@ -55,14 +58,33 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  const handleReviewSubmit = async (productId, newReview) => {
+  const handleReviewSubmit = async (productId, review) => {
     if (!user) return;
+  
+    const { text, rating, includeName } = review;
+  
+    let nickname = null;
+    let userEmail = null;
+  
+    if (includeName) {
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          nickname = userDoc.data().nickname || null;
+        }
+        userEmail = user.email;
+      } catch (error) {
+        console.error("Error fetching user nickname:", error);
+      }
+    }
+  
     try {
       await addDoc(collection(db, "reviews"), {
         productId,
-        text: newReview.text,
-        rating: newReview.rating,
-        userEmail: user.email,
+        text,
+        rating,
+        nickname: includeName ? nickname : null,
+        userEmail: includeName ? userEmail : null,
         createdAt: serverTimestamp(),
       });
     } catch (err) {
