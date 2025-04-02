@@ -13,6 +13,7 @@ import {
 import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
 import { Link } from "react-router-dom";
+import EditProductForm from "./EditProductForm";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -20,6 +21,9 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
+
+  const [editing, setEditing] = useState(false);
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
 
   const handleReviewSubmit = async (review) => {
     if (!user) return;
@@ -87,13 +91,39 @@ export default function ProductPage() {
         <p className="text-gray-400 mb-2">Not yet rated</p>
       )}
 
+      <button
+        onClick={() => {
+          if (user) {
+            setEditing(true);
+            setShowLoginMessage(false);
+          } else {
+            setShowLoginMessage(true);
+          }
+        }}
+        className="text-sm text-blue-600 underline ml-2"
+      >
+        ✏️ Edit
+      </button>
+
       <img
         src={product.image}
         alt={product.name}
         className="w-full h-64 object-cover rounded mb-4"
       />
 
-      <p className="mb-6">{product.description}</p>
+      {editing ? (
+        <EditProductForm
+          product={product}
+          onCancel={() => setEditing(false)}
+          onSave={() => setEditing(false)}
+        />
+      ) : showLoginMessage ? (
+        <p className="text-sm text-red-600 italic mb-6">
+          You must be logged in to edit this product.
+        </p>
+      ) : (
+        <p className="mb-6">{product.description}</p>
+      )}
 
       {user ? (
         <ReviewForm onSubmit={handleReviewSubmit} />
