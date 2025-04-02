@@ -128,12 +128,12 @@ export default function AddItemForm() {
                 type="button"
                 className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
                 onClick={() => {
-                  setName(suggestedMatch.name);
-                  setSuggestedMatch(null);
+                  navigate(`/products/${suggestedMatch.id}`);
                 }}
               >
                 Yes, that's it
               </button>
+
 
               <button
                 type="button"
