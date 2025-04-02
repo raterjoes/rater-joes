@@ -90,10 +90,6 @@ export default function App() {
       <header className="bg-white shadow p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-red-700">Rater Joe’s</h1>
         <nav className="space-x-4 flex items-center">
-          <a href="#produce" className="text-blue-600 hover:underline">Produce</a>
-          <a href="#frozen-foods" className="text-blue-600 hover:underline">Frozen Foods</a>
-          <a href="#desserts" className="text-blue-600 hover:underline">Desserts</a>
-
           {user ? (
             <>
               <span className="text-sm text-gray-600 italic">Hi, {user.email}</span>
@@ -141,6 +137,19 @@ export default function App() {
           + Add New Item
         </Link>
       </div>
+
+      <div className="max-w-xl mx-auto px-4 mt-4 flex justify-center gap-4">
+        <a href="#produce" className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+          Produce
+        </a>
+        <a href="#frozen-foods" className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+          Frozen Foods
+        </a>
+        <a href="#desserts" className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+          Desserts
+        </a>
+      </div>
+
 
       <main className="p-6 space-y-12">
         <CategorySection
