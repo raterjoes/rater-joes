@@ -8,6 +8,7 @@ import {
   query,
   where,
   onSnapshot,
+  addDoc
 } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
@@ -19,6 +20,23 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
+
+  const handleReviewSubmit = async (review) => {
+    if (!user) return;
+  
+    try {
+      await addDoc(collection(db, "reviews"), {
+        productId: id,
+        text: review.text,
+        rating: review.rating,
+        userEmail: user.email,
+        createdAt: new Date()
+      });
+    } catch (err) {
+      console.error("Failed to submit review:", err);
+      alert("Failed to submit review.");
+    }
+  };  
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -78,7 +96,7 @@ export default function ProductPage() {
       <p className="mb-6">{product.description}</p>
 
       {user ? (
-        <ReviewForm productId={product.id} />
+        <ReviewForm onSubmit={handleReviewSubmit} />
       ) : (
         <p className="text-sm italic text-gray-600 mb-4">
           Please log in to leave a review.
