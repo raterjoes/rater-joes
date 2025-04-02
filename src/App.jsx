@@ -22,6 +22,21 @@ export default function App() {
   const [reviews, setReviews] = useState({});
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [nickname, setNickname] = useState(null);
+
+  // Load nickname from Firestore
+  useEffect(() => {
+    const fetchNickname = async () => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setNickname(userDoc.data().nickname || null);
+        }
+      }
+    };
+  
+    fetchNickname();
+  }, [user]);  
 
   // 🔄 Load products from Firestore
   useEffect(() => {
@@ -115,7 +130,9 @@ export default function App() {
         <nav className="space-x-4 flex items-center">
           {user ? (
             <>
-              <span className="text-sm text-gray-600 italic">Hi, {user.email}</span>
+              <span className="text-sm text-gray-600 italic">
+                Hi, {nickname || user.email}
+              </span>
               <button
                 onClick={logout}
                 className="ml-2 text-blue-600 hover:underline"
