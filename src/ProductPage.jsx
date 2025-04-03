@@ -23,6 +23,7 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [sortOption, setSortOption] = useState("newest");
   const [editing, setEditing] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
 
@@ -89,6 +90,18 @@ export default function ProductPage() {
           reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
         ).toFixed(1)
       : null;
+
+  // ✅ Sort reviews based on sortOption
+  let sortedReviews = [...reviews];
+  if (sortOption === "newest") {
+    sortedReviews.sort((a, b) => b.createdAt - a.createdAt);
+  } else if (sortOption === "oldest") {
+    sortedReviews.sort((a, b) => a.createdAt - b.createdAt);
+  } else if (sortOption === "high-to-low") {
+    sortedReviews.sort((a, b) => b.rating - a.rating);
+  } else if (sortOption === "low-to-high") {
+    sortedReviews.sort((a, b) => a.rating - b.rating);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans">
@@ -170,10 +183,26 @@ export default function ProductPage() {
 
           {/* Reviews Section */}
           <section className="bg-gray-50 p-6 rounded shadow-md mt-10">
-            <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
+            <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+              <h2 className="text-2xl font-semibold">Reviews</h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Sort by:</span>
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className="text-sm border rounded px-2 py-1"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                  <option value="high-to-low">Rating: High to Low</option>
+                  <option value="low-to-high">Rating: Low to High</option>
+                </select>
+              </div>
+            </div>
 
-            {reviews.length ? (
-              reviews.map((r, i) => (
+
+            {sortedReviews.length ? (
+              sortedReviews.map((r, i) => (
                 <div
                   key={i}
                   className="bg-white p-4 rounded border border-gray-200 shadow-sm mb-4"
