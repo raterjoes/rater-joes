@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Link } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
 import "./index.css";
 
 import { useAuth } from "./AuthContext";
@@ -205,22 +206,42 @@ export default function App() {
 
 // ⬇️ Category Section
 function CategorySection({ id, title, products, reviews, onReviewSubmit, user }) {
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
-    <section id={id}>
-      <h2 className="text-2xl font-semibold mb-4">{title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            productId={product.id}
-            name={product.name}
-            image={product.image}
-            description={product.description}
-            reviews={reviews[product.id] || []}
-            onReviewSubmit={onReviewSubmit}
-            user={user}
-          />
-        ))}
+    <section id={id} className="bg-white border shadow rounded p-4 transition mb-6">
+      <div
+        className="flex justify-between items-center cursor-pointer mb-2"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <h2 className="text-2xl font-semibold">{title}</h2>
+        <ChevronDown
+          className={`w-5 h-5 text-gray-600 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+        />
+        {/* Or use: <ChevronDown className={isOpen ? "rotate-180" : ""} /> */}
+      </div>
+
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-4">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              productId={product.id}
+              name={product.name}
+              image={product.image}
+              description={product.description}
+              reviews={reviews[product.id] || []}
+              onReviewSubmit={onReviewSubmit}
+              user={user}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
