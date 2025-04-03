@@ -66,6 +66,9 @@ export default function Navbar() {
         <Link to="/chat" className="text-blue-600 hover:underline">
           Chat
         </Link>
+        <Link to="/seasonal" className="text-blue-600 hover:underline">
+          Seasonal
+        </Link>
       </nav>
     </header>
   );

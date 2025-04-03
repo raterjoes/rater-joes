@@ -10,6 +10,7 @@ import ProductPage from "./ProductPage";
 import Contact from "./Contact";
 import PendingProducts from './PendingProducts.jsx';
 import ChatBoard from './ChatBoard.jsx'
+import Seasonal from './Seasonal.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -23,6 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/contact" element={<Contact />} />
           <Route path="/pending-products" element={<PendingProducts />} />
           <Route path="/chat" element={<ChatBoard />} />
+          <Route path="/seasonal" element={<Seasonal />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
