@@ -22,7 +22,7 @@ export default function Navbar() {
   }, [user]);
 
   return (
-    <header className="bg-white shadow p-4 flex justify-between items-center">
+    <header className="bg-gray-100 shadow p-4 flex justify-between items-center">
       <Link to="/" className="text-xl font-bold text-red-700 hover:underline">
         Rater Joe’s
       </Link>
