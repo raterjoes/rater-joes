@@ -5,7 +5,9 @@ import {
   onSnapshot,
   serverTimestamp,
   getDoc,
-  doc
+  doc,
+  query,
+  where
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Link } from "react-router-dom";
@@ -40,7 +42,9 @@ export default function App() {
   }, [user]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
+    const unsubscribe = onSnapshot(
+      query(collection(db, "products"), where("approved", "==", true)),
+      (snapshot) => {
       const loaded = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()

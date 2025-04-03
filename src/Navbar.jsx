@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { getDoc, doc } from "firebase/firestore";
+import { getDoc, doc, getDocs, collection } from "firebase/firestore";
 import { db } from "./firebase";
 import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [nickname, setNickname] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchNickname = async () => {
@@ -18,7 +19,16 @@ export default function Navbar() {
       }
     };
 
+    const checkAdmin = async () => {
+      if (user) {
+        const snapshot = await getDocs(collection(db, "admins"));
+        const adminEmails = snapshot.docs.map(doc => doc.data().email);
+        setIsAdmin(adminEmails.includes(user.email));
+      }
+    };
+
     fetchNickname();
+    checkAdmin();
   }, [user]);
 
   return (
@@ -28,12 +38,16 @@ export default function Navbar() {
       </Link>
 
       <nav className="space-x-4 flex items-center">
-
         {user ? (
           <>
             <span className="text-sm text-gray-600 italic">
               Hi, {nickname || user.email}
             </span>
+            {isAdmin && (
+              <Link to="/pending-products" className="text-blue-600 hover:underline">
+                Pending Products
+              </Link>
+            )}
             <button
               onClick={logout}
               className="ml-2 text-blue-600 hover:underline"

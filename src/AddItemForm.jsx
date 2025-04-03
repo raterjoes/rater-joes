@@ -73,6 +73,7 @@ export default function AddItemForm() {
         season: isSeasonal ? season : null,
         createdAt: serverTimestamp(),
         addedBy: user.email,
+        approved: false
       });
 
       alert("Product added!");
