@@ -15,6 +15,25 @@ import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
+// ✅ Format timestamp
+function formatTimestamp(timestamp) {
+  if (!timestamp) return "";
+  const date = timestamp.toDate();
+  const now = new Date();
+  const diffMs = now - date;
+
+  const minutes = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMs / 3600000);
+  const days = Math.floor(diffMs / 86400000);
+
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+
+  return date.toLocaleDateString();
+}
+
 export default function ChatBoard() {
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -169,7 +188,9 @@ export default function ChatBoard() {
             {post.image && (
               <img src={post.image} alt="Post" className="w-full max-w-sm mb-2" />
             )}
-            <p className="text-xs text-gray-500 mb-3">by {post.nickname}</p>
+            <p className="text-xs text-gray-500 mb-3">
+              by {post.nickname} • {formatTimestamp(post.createdAt)}
+            </p>
 
             <div className="space-y-2">
               {(comments[post.id] || []).map((comment) => (
@@ -185,7 +206,9 @@ export default function ChatBoard() {
                       className="mt-1 w-40 h-auto rounded"
                     />
                   )}
-                  <p className="text-xs text-gray-500">by {comment.nickname}</p>
+                  <p className="text-xs text-gray-500">
+                    by {comment.nickname} • {formatTimestamp(comment.createdAt)}
+                  </p>
                 </div>
               ))}
             </div>
