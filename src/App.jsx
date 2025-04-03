@@ -209,7 +209,7 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <section id={id} className="bg-white border shadow rounded p-4 transition mb-6">
+    <section id={id} className="bg-gray-50 border shadow rounded p-4 transition mb-6">
       <div
         className="flex justify-between items-center cursor-pointer mb-2"
         onClick={() => setIsOpen(!isOpen)}
