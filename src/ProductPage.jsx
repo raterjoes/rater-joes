@@ -25,6 +25,7 @@ export default function ProductPage() {
   const [reviews, setReviews] = useState([]);
   const [sortOption, setSortOption] = useState("newest");
   const [editing, setEditing] = useState(false);
+  const [editSuccess, setEditSuccess] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
 
   const handleReviewSubmit = async (review) => {
@@ -134,9 +135,8 @@ export default function ProductPage() {
                   Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },
                   Spring: { emoji: "🌱", bg: "bg-green-100", text: "text-green-700" },
                   Summer: { emoji: "☀️", bg: "bg-yellow-100", text: "text-yellow-700" },
-                  Fall:   { emoji: "🍂", bg: "bg-orange-100", text: "text-orange-700" },
+                  Fall: { emoji: "🍂", bg: "bg-orange-100", text: "text-orange-700" },
                 };
-
                 const style = seasonStyles[product.season] || {};
                 return (
                   <div className="mb-2">
@@ -181,7 +181,11 @@ export default function ProductPage() {
             <EditProductForm
               product={product}
               onCancel={() => setEditing(false)}
-              onSave={() => setEditing(false)}
+              onSave={() => {
+                setEditing(false);
+                setEditSuccess(true);
+                setTimeout(() => setEditSuccess(false), 4000);
+              }}
             />
           ) : showLoginMessage ? (
             <p className="text-sm text-red-600 italic mb-6">
@@ -190,6 +194,13 @@ export default function ProductPage() {
           ) : (
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
               {product.description}
+            </p>
+          )}
+
+          {/* ✅ Show after edit form is closed */}
+          {editSuccess && (
+            <p className="text-green-700 text-sm bg-green-100 p-2 rounded shadow inline-block mb-6">
+              ✅ Edit submitted for admin review.
             </p>
           )}
 

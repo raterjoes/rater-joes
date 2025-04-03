@@ -44,8 +44,7 @@ function EditProductForm({ product, onCancel, onSave }) {
         createdAt: serverTimestamp(),
       });
 
-      alert("Edit submitted for admin review.");
-      onSave();
+      onSave("✅ Edit submitted for admin review."); // Pass message to parent
     } catch (err) {
       alert("Error submitting edit");
       console.error(err);
