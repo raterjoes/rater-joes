@@ -11,7 +11,6 @@ import { db } from "./firebase";
 import { Link } from "react-router-dom";
 import "./index.css";
 
-import AuthForm from "./AuthForm";
 import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
 import ReviewList from "./ReviewList";
@@ -19,13 +18,13 @@ import categories from "./categories";
 import Navbar from "./Navbar";
 
 export default function App() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [reviews, setReviews] = useState({});
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [nickname, setNickname] = useState(null);
 
-  // Load nickname from Firestore
+  // 🔄 Load nickname
   useEffect(() => {
     const fetchNickname = async () => {
       if (user) {
@@ -35,53 +34,49 @@ export default function App() {
         }
       }
     };
-  
     fetchNickname();
-  }, [user]);  
+  }, [user]);
 
-  // 🔄 Load products from Firestore
+  // 🔄 Load products
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
-      const loadedProducts = snapshot.docs.map((doc) => ({
+      const loaded = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data(),
+        ...doc.data()
       }));
-      setProducts(loadedProducts);
+      setProducts(loaded);
     });
-
     return () => unsubscribe();
   }, []);
 
-  // 🔄 Load reviews from Firestore
+  // 🔄 Load reviews
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "reviews"), (snapshot) => {
-      const loadedReviews = {};
+      const all = {};
       snapshot.forEach((doc) => {
         const data = doc.data();
         const pid = data.productId;
-        if (!loadedReviews[pid]) loadedReviews[pid] = [];
-        loadedReviews[pid].push({
+        if (!all[pid]) all[pid] = [];
+        all[pid].push({
           text: data.text,
           rating: data.rating,
           userEmail: data.userEmail || null,
           nickname: data.nickname || null,
-          createdAt: data.createdAt?.toDate(),
-        });        
+          createdAt: data.createdAt?.toDate()
+        });
       });
-      setReviews(loadedReviews);
+      setReviews(all);
     });
-
     return () => unsubscribe();
   }, []);
 
   const handleReviewSubmit = async (productId, review) => {
     if (!user) return;
-  
+
     const { text, rating, includeName } = review;
-  
     let nickname = null;
     let userEmail = null;
-  
+
     if (includeName) {
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -89,11 +84,11 @@ export default function App() {
           nickname = userDoc.data().nickname || null;
         }
         userEmail = user.email;
-      } catch (error) {
-        console.error("Error fetching user nickname:", error);
+      } catch (err) {
+        console.error("Error getting nickname:", err);
       }
     }
-  
+
     try {
       await addDoc(collection(db, "reviews"), {
         productId,
@@ -101,21 +96,21 @@ export default function App() {
         rating,
         nickname: includeName ? nickname : null,
         userEmail: includeName ? userEmail : null,
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp()
       });
     } catch (err) {
-      console.error("Failed to submit review:", err);
+      console.error("Submit error:", err);
       alert("Failed to submit review.");
     }
   };
 
-  // 🔍 Filter products by search
+  // 🔍 Search filter
   const filtered = products.filter((p) => {
-    const query = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     return (
-      p.name.toLowerCase().includes(query) ||
-      p.description.toLowerCase().includes(query) ||
-      p.category.toLowerCase().includes(query)
+      p.name.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q)
     );
   });
 
@@ -123,6 +118,8 @@ export default function App() {
     acc[cat] = filtered.filter((p) => p.category === cat);
     return acc;
   }, {});
+
+  const totalFiltered = Object.values(categorized).flat().length;
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans">
@@ -161,29 +158,45 @@ export default function App() {
       </div>
 
       <div className="w-full max-w-5xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-3">
-        {categories.map((cat) => (
-          <a
-            key={cat}
-            href={`#${cat.toLowerCase().replace(/\s+/g, "-")}`}
-            className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-          >
-            {cat}
-          </a>
-        ))}
+        {categories.map((cat) => {
+          const catProducts = categorized[cat] || [];
+          if (catProducts.length === 0) return null;
+
+          return (
+            <a
+              key={cat}
+              href={`#${cat.toLowerCase().replace(/\s+/g, "-")}`}
+              className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+            >
+              {cat}
+            </a>
+          );
+        })}
       </div>
 
       <main className="p-6 space-y-12">
-        {categories.map((cat) => (
-          <CategorySection
-            key={cat}
-            id={cat.toLowerCase().replace(/\s+/g, "-")}
-            title={cat}
-            products={categorized[cat] || []}
-            reviews={reviews}
-            onReviewSubmit={handleReviewSubmit}
-            user={user}
-          />
-        ))}
+        {totalFiltered === 0 ? (
+          <p className="text-center text-gray-500 text-lg mt-10">
+            No products match your search.
+          </p>
+        ) : (
+          categories.map((cat) => {
+            const catProducts = categorized[cat] || [];
+            if (catProducts.length === 0) return null;
+
+            return (
+              <CategorySection
+                key={cat}
+                id={cat.toLowerCase().replace(/\s+/g, "-")}
+                title={cat}
+                products={catProducts}
+                reviews={reviews}
+                onReviewSubmit={handleReviewSubmit}
+                user={user}
+              />
+            );
+          })
+        )}
       </main>
     </div>
   );
@@ -227,7 +240,10 @@ function ProductCard({
     : null;
 
   return (
-    <Link to={`/products/${productId}`} className="block bg-white rounded-lg shadow p-4 hover:shadow-lg transition">
+    <Link
+      to={`/products/${productId}`}
+      className="block bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
+    >
       <img
         src={image}
         alt={name}
