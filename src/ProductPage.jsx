@@ -25,7 +25,6 @@ export default function ProductPage() {
   const [editing, setEditing] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
 
-  // ✅ Fixed: fetch nickname + store with review
   const handleReviewSubmit = async (review) => {
     if (!user) return;
 
@@ -91,44 +90,61 @@ export default function ProductPage() {
       : null;
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto px-6 py-8">
+      {/* Back Button */}
       <div className="mb-6">
         <Link to="/" className="text-blue-600 hover:underline font-medium">
           ← Back to Home
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-      <p className="text-sm text-gray-500 mb-2">{product.category}</p>
+      {/* Grid: Info + Image */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-8">
+        {/* Left: Text Info */}
+        <div>
+          <h1 className="text-4xl font-serif font-bold text-gray-800 mb-2">
+            {product.name}
+          </h1>
 
-      {average ? (
-        <p className="text-yellow-500 mb-2">
-          {"⭐".repeat(Math.round(average))} ({average})
-        </p>
-      ) : (
-        <p className="text-gray-400 mb-2">Not yet rated</p>
-      )}
+          <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+            {product.category}
+          </p>
 
-      <button
-        onClick={() => {
-          if (user) {
-            setEditing(true);
-            setShowLoginMessage(false);
-          } else {
-            setShowLoginMessage(true);
-          }
-        }}
-        className="text-sm text-blue-600 underline ml-2"
-      >
-        ✏️ Edit
-      </button>
+          {average ? (
+            <div className="flex items-center text-yellow-500 mb-2">
+              {"⭐".repeat(Math.round(average))}
+              <span className="ml-2 text-sm text-gray-700">({average})</span>
+            </div>
+          ) : (
+            <p className="text-gray-400 mb-2">Not yet rated</p>
+          )}
 
-      <img
-        src={product.image}
-        alt={product.name}
-        className="w-full h-64 object-cover rounded mb-4"
-      />
+          <button
+            onClick={() => {
+              if (user) {
+                setEditing(true);
+                setShowLoginMessage(false);
+              } else {
+                setShowLoginMessage(true);
+              }
+            }}
+            className="inline-block text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition"
+          >
+            ✏️ Edit Product
+          </button>
+        </div>
 
+        {/* Right: Image */}
+        <div className="overflow-hidden rounded-lg shadow">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-64 object-cover"
+          />
+        </div>
+      </div>
+
+      {/* Description or Edit Form */}
       {editing ? (
         <EditProductForm
           product={product}
@@ -140,9 +156,12 @@ export default function ProductPage() {
           You must be logged in to edit this product.
         </p>
       ) : (
-        <p className="mb-6">{product.description}</p>
+        <p className="text-lg text-gray-700 leading-relaxed mb-6">
+          {product.description}
+        </p>
       )}
 
+      {/* Review Form */}
       {user ? (
         <ReviewForm onSubmit={handleReviewSubmit} productId={id} />
       ) : (
@@ -151,26 +170,29 @@ export default function ProductPage() {
         </p>
       )}
 
-      <div className="space-y-3">
-        <h2 className="text-xl font-semibold mb-2">Reviews</h2>
+      {/* Reviews Section */}
+      <section className="bg-gray-50 p-6 rounded shadow-md mt-10">
+        <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
+
         {reviews.length ? (
           reviews.map((r, i) => (
-            <div key={i} className="bg-gray-100 p-3 rounded">
-              <div className="font-bold">{r.rating} ⭐</div>
-              <p>{r.text}</p>
-              {r.nickname ? (
-                <p className="text-xs italic text-gray-600">by {r.nickname}</p>
-              ) : r.userEmail ? (
-                <p className="text-xs italic text-gray-600">by {r.userEmail}</p>
-              ) : (
-                <p className="text-xs italic text-gray-400">Anonymous</p>
-              )}
+            <div
+              key={i}
+              className="bg-white p-4 rounded border border-gray-200 shadow-sm mb-4"
+            >
+              <div className="font-bold text-yellow-500 text-lg mb-1">
+                {r.rating} ⭐
+              </div>
+              <p className="text-gray-800">{r.text}</p>
+              <p className="text-xs italic text-gray-500 mt-2">
+                by {r.nickname || r.userEmail || "Anonymous"}
+              </p>
             </div>
           ))
         ) : (
-          <p className="text-sm text-gray-500">No reviews yet.</p>
+          <p className="text-sm text-gray-600">No reviews yet.</p>
         )}
-      </div>
+      </section>
     </div>
   );
 }
