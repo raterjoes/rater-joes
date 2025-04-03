@@ -126,7 +126,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans">
       <header className="bg-white shadow p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-red-700">Rater Joe’s</h1>
+        <Link
+          to="/"
+          className="text-xl font-bold text-red-700 hover:underline"
+        >
+          Rater Joe’s
+        </Link>
         <nav className="space-x-4 flex items-center">
           {user ? (
             <>
@@ -155,7 +160,7 @@ export default function App() {
           to="/login"
           className="inline-block mt-6 px-6 py-3 bg-red-600 rounded text-white hover:bg-red-700"
         >
-          Join the Reviews
+          Log In
         </Link>
       </section>
 
