@@ -26,7 +26,9 @@ export default function Navbar() {
       <Link to="/" className="text-xl font-bold text-red-700 hover:underline">
         Rater Joe’s
       </Link>
+
       <nav className="space-x-4 flex items-center">
+
         {user ? (
           <>
             <span className="text-sm text-gray-600 italic">
@@ -44,6 +46,9 @@ export default function Navbar() {
             Log In
           </Link>
         )}
+        <Link to="/contact" className="text-blue-600 hover:underline">
+          Contact
+        </Link>
       </nav>
     </header>
   );

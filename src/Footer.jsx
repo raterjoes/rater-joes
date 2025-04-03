@@ -14,7 +14,7 @@ export default function Footer() {
         <nav className="flex gap-4 text-gray-600 text-sm">
           <Link to="/" className="hover:underline">Home</Link>
           <Link to="/login" className="hover:underline">Log In</Link>
-          <Link to="/add-item" className="hover:underline">Add Item</Link>
+          <Link to="/contact" className="hover:underline">Contact</Link>
         </nav>
       </div>
     </footer>

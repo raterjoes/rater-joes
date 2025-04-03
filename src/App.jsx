@@ -18,6 +18,7 @@ import ReviewList from "./ReviewList";
 import categories from "./categories";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import Contact from "./Contact";
 
 export default function App() {
   const { user } = useAuth();
