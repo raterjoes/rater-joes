@@ -15,6 +15,7 @@ import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
 import { Link } from "react-router-dom";
 import EditProductForm from "./EditProductForm";
+import Navbar from "./Navbar";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -91,31 +92,7 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans">
-      {/* ✅ NAV BAR (same as homepage) */}
-      <header className="bg-white shadow p-4 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-red-700 hover:underline">
-          Rater Joe’s
-        </Link>
-        <nav className="space-x-4 flex items-center">
-          {user ? (
-            <>
-              <span className="text-sm text-gray-600 italic">
-                Hi, {user.displayName || user.email}
-              </span>
-              <button
-                onClick={() => window.location.href = "/login"}
-                className="ml-2 text-blue-600 hover:underline"
-              >
-                Log Out
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="text-blue-600 hover:underline">
-              Log In
-            </Link>
-          )}
-        </nav>
-      </header>
+      <Navbar />
   
       <div className="max-w-3xl mx-auto px-6 py-8">
   

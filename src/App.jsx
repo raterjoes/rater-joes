@@ -16,6 +16,7 @@ import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
 import ReviewList from "./ReviewList";
 import categories from "./categories";
+import Navbar from "./Navbar";
 
 export default function App() {
   const { user, logout } = useAuth();
@@ -125,31 +126,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans">
-      <header className="bg-white shadow p-4 flex justify-between items-center">
-        <Link
-          to="/"
-          className="text-xl font-bold text-red-700 hover:underline"
-        >
-          Rater Joe’s
-        </Link>
-        <nav className="space-x-4 flex items-center">
-          {user ? (
-            <>
-              <span className="text-sm text-gray-600 italic">
-                Hi, {nickname || user.email}
-              </span>
-              <button
-                onClick={logout}
-                className="ml-2 text-blue-600 hover:underline"
-              >
-                Log Out
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="text-blue-600 hover:underline">Log In</Link>
-          )}
-        </nav>
-      </header>
+      <Navbar />
 
       <section className="bg-black text-white text-center py-12">
         <h2 className="text-4xl font-bold mb-4">Explore Trader Joe's Reviews</h2>
