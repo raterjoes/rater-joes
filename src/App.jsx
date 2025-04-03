@@ -16,6 +16,7 @@ import ReviewForm from "./ReviewForm";
 import ReviewList from "./ReviewList";
 import categories from "./categories";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 export default function App() {
   const { user } = useAuth();
@@ -24,7 +25,6 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [nickname, setNickname] = useState(null);
 
-  // 🔄 Load nickname
   useEffect(() => {
     const fetchNickname = async () => {
       if (user) {
@@ -37,7 +37,6 @@ export default function App() {
     fetchNickname();
   }, [user]);
 
-  // 🔄 Load products
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
       const loaded = snapshot.docs.map((doc) => ({
@@ -49,7 +48,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 🔄 Load reviews
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "reviews"), (snapshot) => {
       const all = {};
@@ -104,7 +102,6 @@ export default function App() {
     }
   };
 
-  // 🔍 Search filter
   const filtered = products.filter((p) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -122,82 +119,86 @@ export default function App() {
   const totalFiltered = Object.values(categorized).flat().length;
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans">
+    <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans">
       <Navbar />
 
-      <section className="bg-black text-white text-center py-12">
-        <h2 className="text-4xl font-bold mb-4">Explore Trader Joe's Reviews</h2>
-        <p className="text-lg">
-          Find the top-rated products and share your own feedback with the community.
-        </p>
-        <Link
-          to="/login"
-          className="inline-block mt-6 px-6 py-3 bg-red-600 rounded text-white hover:bg-red-700"
-        >
-          Log In
-        </Link>
-      </section>
-
-      <div className="max-w-xl mx-auto px-4 mt-6">
-        <input
-          type="text"
-          placeholder="Search for a product..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      <div className="max-w-xl mx-auto px-4 mt-4 text-right">
-        <Link
-          to="/add-item"
-          className="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          + Add New Item
-        </Link>
-      </div>
-
-      <div className="w-full max-w-5xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-3">
-        {categories.map((cat) => {
-          const catProducts = categorized[cat] || [];
-          if (catProducts.length === 0) return null;
-
-          return (
-            <a
-              key={cat}
-              href={`#${cat.toLowerCase().replace(/\s+/g, "-")}`}
-              className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-            >
-              {cat}
-            </a>
-          );
-        })}
-      </div>
-
-      <main className="p-6 space-y-12">
-        {totalFiltered === 0 ? (
-          <p className="text-center text-gray-500 text-lg mt-10">
-            No products match your search.
+      <main className="flex-grow">
+        <section className="bg-black text-white text-center py-12">
+          <h2 className="text-4xl font-bold mb-4">Explore Trader Joe's Reviews</h2>
+          <p className="text-lg">
+            Find the top-rated products and share your own feedback with the community.
           </p>
-        ) : (
-          categories.map((cat) => {
+          <Link
+            to="/login"
+            className="inline-block mt-6 px-6 py-3 bg-red-600 rounded text-white hover:bg-red-700"
+          >
+            Log In
+          </Link>
+        </section>
+
+        <div className="max-w-xl mx-auto px-4 mt-6">
+          <input
+            type="text"
+            placeholder="Search for a product..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="max-w-xl mx-auto px-4 mt-4 text-right">
+          <Link
+            to="/add-item"
+            className="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            + Add New Item
+          </Link>
+        </div>
+
+        <div className="w-full max-w-5xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-3">
+          {categories.map((cat) => {
             const catProducts = categorized[cat] || [];
             if (catProducts.length === 0) return null;
 
             return (
-              <CategorySection
+              <a
                 key={cat}
-                id={cat.toLowerCase().replace(/\s+/g, "-")}
-                title={cat}
-                products={catProducts}
-                reviews={reviews}
-                onReviewSubmit={handleReviewSubmit}
-                user={user}
-              />
+                href={`#${cat.toLowerCase().replace(/\s+/g, "-")}`}
+                className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              >
+                {cat}
+              </a>
             );
-          })
-        )}
+          })}
+        </div>
+
+        <div className="p-6 space-y-12">
+          {totalFiltered === 0 ? (
+            <p className="text-center text-gray-500 text-lg mt-10">
+              No products match your search.
+            </p>
+          ) : (
+            categories.map((cat) => {
+              const catProducts = categorized[cat] || [];
+              if (catProducts.length === 0) return null;
+
+              return (
+                <CategorySection
+                  key={cat}
+                  id={cat.toLowerCase().replace(/\s+/g, "-")}
+                  title={cat}
+                  products={catProducts}
+                  reviews={reviews}
+                  onReviewSubmit={handleReviewSubmit}
+                  user={user}
+                />
+              );
+            })
+          )}
+        </div>
       </main>
+
+      <Footer />
     </div>
   );
 }
