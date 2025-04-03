@@ -9,6 +9,7 @@ import AddItemForm from "./AddItemForm";
 import ProductPage from "./ProductPage";
 import Contact from "./Contact";
 import PendingProducts from './PendingProducts.jsx';
+import ChatBoard from './ChatBoard.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/products/:id" element={<ProductPage />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/pending-products" element={<PendingProducts />} />
+          <Route path="/chat" element={<ChatBoard />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
