@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { updateDoc, doc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "./firebase";
 import categories from "./categories";
+import { useAuth } from "./AuthContext";
 
 function EditProductForm({ product, onCancel, onSave }) {
+  const { user } = useAuth();
+
   const [name, setName] = useState(product.name);
   const [category, setCategory] = useState(product.category);
   const [imageUrl, setImageUrl] = useState(product.image);
@@ -20,24 +23,31 @@ function EditProductForm({ product, onCancel, onSave }) {
       let finalImageUrl = imageUrl;
 
       if (newImageFile) {
-        const imageRef = ref(storage, `product-images/${Date.now()}-${newImageFile.name}`);
+        const imageRef = ref(
+          storage,
+          `product-images/${Date.now()}-${newImageFile.name}`
+        );
         await uploadBytes(imageRef, newImageFile);
         finalImageUrl = await getDownloadURL(imageRef);
       }
 
-      const refToProduct = doc(db, "products", product.id);
-      await updateDoc(refToProduct, {
+      await addDoc(collection(db, "product_edits"), {
+        productId: product.id,
         name,
         category,
         image: finalImageUrl,
         description,
         seasonal: isSeasonal,
         season: isSeasonal ? season : null,
+        approved: false,
+        editedBy: user.email,
+        createdAt: serverTimestamp(),
       });
 
+      alert("Edit submitted for admin review.");
       onSave();
     } catch (err) {
-      alert("Error updating product");
+      alert("Error submitting edit");
       console.error(err);
     }
   };
@@ -92,7 +102,6 @@ function EditProductForm({ product, onCancel, onSave }) {
         required
       />
 
-      {/* ✅ Seasonal toggle */}
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -100,27 +109,28 @@ function EditProductForm({ product, onCancel, onSave }) {
           checked={isSeasonal}
           onChange={(e) => setIsSeasonal(e.target.checked)}
         />
-        <label htmlFor="seasonal" className="text-sm">Seasonal?</label>
+        <label htmlFor="seasonal" className="text-sm">
+          Seasonal?
+        </label>
       </div>
 
-      {/* ✅ Show dropdown only if seasonal is checked */}
       {isSeasonal && (
         <div className="flex items-center gap-2">
-        <label htmlFor="season" className="text-sm font-medium">
-          Season:
-        </label>
-        <select
-          id="season"
-          value={season}
-          onChange={(e) => setSeason(e.target.value)}
-          className="flex-grow p-2 border rounded"
-        >
-          <option>Winter</option>
-          <option>Spring</option>
-          <option>Summer</option>
-          <option>Fall</option>
-        </select>
-      </div>      
+          <label htmlFor="season" className="text-sm font-medium">
+            Season:
+          </label>
+          <select
+            id="season"
+            value={season}
+            onChange={(e) => setSeason(e.target.value)}
+            className="flex-grow p-2 border rounded"
+          >
+            <option>Winter</option>
+            <option>Spring</option>
+            <option>Summer</option>
+            <option>Fall</option>
+          </select>
+        </div>
       )}
 
       <div className="flex justify-end gap-2">
@@ -135,7 +145,7 @@ function EditProductForm({ product, onCancel, onSave }) {
           type="submit"
           className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          Save Changes
+          Submit for Review
         </button>
       </div>
     </form>
