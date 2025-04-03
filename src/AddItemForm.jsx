@@ -23,6 +23,9 @@ export default function AddItemForm() {
   const [imageFile, setImageFile] = useState(null);
   const [description, setDescription] = useState("");
 
+  const [isSeasonal, setIsSeasonal] = useState(false);
+  const [season, setSeason] = useState("Winter");
+
   const [suggestedMatch, setSuggestedMatch] = useState(null);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
@@ -66,6 +69,8 @@ export default function AddItemForm() {
         category,
         image: imageUrl,
         description,
+        seasonal: isSeasonal,
+        season: isSeasonal ? season : null,
         createdAt: serverTimestamp(),
         addedBy: user.email,
       });
@@ -89,24 +94,9 @@ export default function AddItemForm() {
               You must be logged in to add a new item.
             </p>
             <div className="flex justify-center gap-4">
-              <Link
-                to="/"
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
-                🏠 Home
-              </Link>
-              <Link
-                to="/login"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                🔐 Log In
-              </Link>
-              <Link
-                to="/login"
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                📝 Sign Up
-              </Link>
+              <Link to="/" className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">🏠 Home</Link>
+              <Link to="/login" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">🔐 Log In</Link>
+              <Link to="/login" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">📝 Sign Up</Link>
             </div>
           </div>
         ) : (
@@ -114,38 +104,17 @@ export default function AddItemForm() {
             <h2 className="text-2xl font-bold mb-4">Add a New Product</h2>
 
             {checkingDuplicates && (
-              <p className="text-sm text-gray-500 mb-4">
-                Checking for similar items...
-              </p>
+              <p className="text-sm text-gray-500 mb-4">Checking for similar items...</p>
             )}
 
             {suggestedMatch && (
               <div className="bg-yellow-100 border border-yellow-400 p-3 rounded text-sm mb-4">
                 <p className="font-semibold mb-1">Did you mean this item?</p>
-                <p>
-                  <strong>{suggestedMatch.name}</strong>
-                </p>
-                <p className="text-sm text-gray-600 mb-2">
-                  {suggestedMatch.description}
-                </p>
-
+                <p><strong>{suggestedMatch.name}</strong></p>
+                <p className="text-sm text-gray-600 mb-2">{suggestedMatch.description}</p>
                 <div className="flex gap-4 mt-2">
-                  <button
-                    type="button"
-                    className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
-                    onClick={() => {
-                      navigate(`/products/${suggestedMatch.id}`);
-                    }}
-                  >
-                    Yes, that's it
-                  </button>
-                  <button
-                    type="button"
-                    className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded"
-                    onClick={() => setSuggestedMatch(null)}
-                  >
-                    No, continue adding
-                  </button>
+                  <button type="button" className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded" onClick={() => navigate(`/products/${suggestedMatch.id}`)}>Yes, that's it</button>
+                  <button type="button" className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded" onClick={() => setSuggestedMatch(null)}>No, continue adding</button>
                 </div>
               </div>
             )}
@@ -188,6 +157,37 @@ export default function AddItemForm() {
                 onChange={(e) => setDescription(e.target.value)}
                 required
               />
+
+              {/* ✅ Seasonal checkbox */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="seasonal"
+                  checked={isSeasonal}
+                  onChange={(e) => setIsSeasonal(e.target.checked)}
+                />
+                <label htmlFor="seasonal" className="text-sm">Limited/Seasonal?</label>
+              </div>
+
+              {/* ✅ Season dropdown (if seasonal) */}
+              {isSeasonal && (
+                <div className="flex items-center gap-2">
+                <label htmlFor="season" className="text-sm font-medium">
+                  Season:
+                </label>
+                <select
+                  id="season"
+                  value={season}
+                  onChange={(e) => setSeason(e.target.value)}
+                  className="flex-grow p-2 border rounded"
+                >
+                  <option>Winter</option>
+                  <option>Spring</option>
+                  <option>Summer</option>
+                  <option>Fall</option>
+                </select>
+              </div>              
+              )}
 
               {imageFile && (
                 <img

@@ -91,7 +91,6 @@ export default function ProductPage() {
         ).toFixed(1)
       : null;
 
-  // ✅ Sort reviews based on sortOption
   let sortedReviews = [...reviews];
   if (sortOption === "newest") {
     sortedReviews.sort((a, b) => b.createdAt - a.createdAt);
@@ -130,19 +129,41 @@ export default function ProductPage() {
                 <p className="text-gray-400 mb-2">Not yet rated</p>
               )}
 
-              <button
-                onClick={() => {
-                  if (user) {
-                    setEditing(true);
-                    setShowLoginMessage(false);
-                  } else {
-                    setShowLoginMessage(true);
-                  }
-                }}
-                className="inline-block text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition"
-              >
-                ✏️ Edit Product
-              </button>
+              {product.seasonal && product.season && (() => {
+                const seasonStyles = {
+                  Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },
+                  Spring: { emoji: "🌱", bg: "bg-green-100", text: "text-green-700" },
+                  Summer: { emoji: "☀️", bg: "bg-yellow-100", text: "text-yellow-700" },
+                  Fall:   { emoji: "🍂", bg: "bg-orange-100", text: "text-orange-700" },
+                };
+
+                const style = seasonStyles[product.season] || {};
+                return (
+                  <div className="mb-2">
+                    <span
+                      className={`inline-block text-xs font-semibold px-3 py-1 rounded-full shadow-sm ${style.bg} ${style.text}`}
+                    >
+                      {style.emoji} Limited time: {product.season}
+                    </span>
+                  </div>
+                );
+              })()}
+
+              <div className="mb-4">
+                <button
+                  onClick={() => {
+                    if (user) {
+                      setEditing(true);
+                      setShowLoginMessage(false);
+                    } else {
+                      setShowLoginMessage(true);
+                    }
+                  }}
+                  className="inline-block text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition"
+                >
+                  ✏️ Edit Product
+                </button>
+              </div>
             </div>
 
             {/* Right: Image */}
@@ -199,7 +220,6 @@ export default function ProductPage() {
                 </select>
               </div>
             </div>
-
 
             {sortedReviews.length ? (
               sortedReviews.map((r, i) => (

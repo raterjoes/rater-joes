@@ -10,6 +10,8 @@ function EditProductForm({ product, onCancel, onSave }) {
   const [imageUrl, setImageUrl] = useState(product.image);
   const [newImageFile, setNewImageFile] = useState(null);
   const [description, setDescription] = useState(product.description);
+  const [isSeasonal, setIsSeasonal] = useState(product.seasonal || false);
+  const [season, setSeason] = useState(product.season || "Winter");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +19,6 @@ function EditProductForm({ product, onCancel, onSave }) {
     try {
       let finalImageUrl = imageUrl;
 
-      // Upload new image if one was selected
       if (newImageFile) {
         const imageRef = ref(storage, `product-images/${Date.now()}-${newImageFile.name}`);
         await uploadBytes(imageRef, newImageFile);
@@ -30,6 +31,8 @@ function EditProductForm({ product, onCancel, onSave }) {
         category,
         image: finalImageUrl,
         description,
+        seasonal: isSeasonal,
+        season: isSeasonal ? season : null,
       });
 
       onSave();
@@ -61,7 +64,6 @@ function EditProductForm({ product, onCancel, onSave }) {
         ))}
       </select>
 
-      {/* Preview current or newly selected image */}
       {newImageFile ? (
         <img
           src={URL.createObjectURL(newImageFile)}
@@ -76,7 +78,6 @@ function EditProductForm({ product, onCancel, onSave }) {
         />
       ) : null}
 
-      {/* Image Upload Input */}
       <input
         type="file"
         accept="image/*"
@@ -90,6 +91,37 @@ function EditProductForm({ product, onCancel, onSave }) {
         className="w-full p-2 border rounded"
         required
       />
+
+      {/* ✅ Seasonal toggle */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="seasonal"
+          checked={isSeasonal}
+          onChange={(e) => setIsSeasonal(e.target.checked)}
+        />
+        <label htmlFor="seasonal" className="text-sm">Seasonal?</label>
+      </div>
+
+      {/* ✅ Show dropdown only if seasonal is checked */}
+      {isSeasonal && (
+        <div className="flex items-center gap-2">
+        <label htmlFor="season" className="text-sm font-medium">
+          Season:
+        </label>
+        <select
+          id="season"
+          value={season}
+          onChange={(e) => setSeason(e.target.value)}
+          className="flex-grow p-2 border rounded"
+        >
+          <option>Winter</option>
+          <option>Spring</option>
+          <option>Summer</option>
+          <option>Fall</option>
+        </select>
+      </div>      
+      )}
 
       <div className="flex justify-end gap-2">
         <button

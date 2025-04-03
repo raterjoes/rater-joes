@@ -232,14 +232,16 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-4">
           {products.map((product) => (
             <ProductCard
-              key={product.id}
-              productId={product.id}
-              name={product.name}
-              image={product.image}
-              description={product.description}
-              reviews={reviews[product.id] || []}
-              onReviewSubmit={onReviewSubmit}
-              user={user}
+            key={product.id}
+            productId={product.id}
+            name={product.name}
+            image={product.image}
+            description={product.description}
+            reviews={reviews[product.id] || []}
+            onReviewSubmit={onReviewSubmit}
+            user={user}
+            seasonal={product.seasonal}
+            season={product.season}
             />
           ))}
         </div>
@@ -255,6 +257,8 @@ function ProductCard({
   description,
   productId,
   reviews,
+  seasonal,
+  season,
 }) {
   const averageRating = reviews.length
     ? (
@@ -262,11 +266,30 @@ function ProductCard({
       ).toFixed(1)
     : null;
 
+  // ✅ Map emoji and color by season
+  const seasonStyles = {
+    Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },
+    Spring: { emoji: "🌱", bg: "bg-green-100", text: "text-green-700" },
+    Summer: { emoji: "☀️", bg: "bg-yellow-100", text: "text-yellow-700" },
+    Fall:   { emoji: "🍂", bg: "bg-orange-100", text: "text-orange-700" },
+  };
+
+  const style = seasonStyles[season] || {};
+
   return (
     <Link
       to={`/products/${productId}`}
-      className="block bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
+      className="relative block bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
     >
+      {/* ✅ Seasonal tag */}
+      {seasonal && season && (
+        <span
+          className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${style.bg} ${style.text}`}
+        >
+          {style.emoji} Limited time: {season}
+        </span>
+      )}
+
       <img
         src={image}
         alt={name}
