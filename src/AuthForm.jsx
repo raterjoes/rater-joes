@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { setDoc, doc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "./firebase"; // ✅ db was missing
+import { auth, db } from "./firebase";
+import Navbar from "./Navbar";
 
 export default function AuthForm() {
   const { user, login, signup, logout } = useAuth();
@@ -43,11 +44,8 @@ export default function AuthForm() {
 
   return (
     <>
-      {/* Top-left home link */}
-      <div className="absolute top-4 left-4">
-        <Link to="/" className="text-blue-600 hover:underline font-medium">
-          ← Back to Home
-        </Link>
+      <div>
+        <Navbar />
       </div>
 
       <div className="bg-white p-4 shadow rounded max-w-sm mx-auto mt-6">
