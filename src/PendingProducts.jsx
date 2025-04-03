@@ -13,14 +13,23 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
 export default function PendingProducts() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [newProducts, setNewProducts] = useState([]);
   const [editProposals, setEditProposals] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminCheckComplete, setAdminCheckComplete] = useState(false);
+
+  useEffect(() => {
+    if (adminCheckComplete && (!user || !isAdmin)) {
+      navigate("/");
+    }
+  }, [user, isAdmin, adminCheckComplete, navigate]);
 
   // ✅ Check admin status
   useEffect(() => {
@@ -29,6 +38,7 @@ export default function PendingProducts() {
       const snapshot = await getDocs(collection(db, "admins"));
       const emails = snapshot.docs.map((doc) => doc.data().email);
       setIsAdmin(emails.includes(user.email));
+      setAdminCheckComplete(true);
     };
     checkAdminStatus();
   }, [user]);
