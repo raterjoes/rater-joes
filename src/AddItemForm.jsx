@@ -22,9 +22,9 @@ export default function AddItemForm() {
   const [category, setCategory] = useState(categories[0]);
   const [imageFile, setImageFile] = useState(null);
   const [description, setDescription] = useState("");
-
   const [isSeasonal, setIsSeasonal] = useState(false);
   const [season, setSeason] = useState("Winter");
+  const [submitted, setSubmitted] = useState(false);
 
   const [suggestedMatch, setSuggestedMatch] = useState(null);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
@@ -64,7 +64,7 @@ export default function AddItemForm() {
         imageUrl = await getDownloadURL(imageRef);
       }
 
-      const docRef = await addDoc(collection(db, "products"), {
+      await addDoc(collection(db, "products"), {
         name,
         category,
         image: imageUrl,
@@ -76,8 +76,7 @@ export default function AddItemForm() {
         approved: false
       });
 
-      alert("Product added!");
-      navigate("/");
+      setSubmitted(true);
     } catch (err) {
       console.error("❌ Error submitting product:", err);
       alert("Error adding product");
@@ -99,6 +98,13 @@ export default function AddItemForm() {
               <Link to="/login" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">🔐 Log In</Link>
               <Link to="/login" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">📝 Sign Up</Link>
             </div>
+          </div>
+        ) : submitted ? (
+          <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded text-center">
+            <h2 className="text-2xl font-bold mb-4 text-green-700">✅ Product submitted for admin review!</h2>
+            <Link to="/add-item" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              + Add Another Item
+            </Link>
           </div>
         ) : (
           <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded">
@@ -173,21 +179,21 @@ export default function AddItemForm() {
               {/* ✅ Season dropdown (if seasonal) */}
               {isSeasonal && (
                 <div className="flex items-center gap-2">
-                <label htmlFor="season" className="text-sm font-medium">
-                  Season:
-                </label>
-                <select
-                  id="season"
-                  value={season}
-                  onChange={(e) => setSeason(e.target.value)}
-                  className="flex-grow p-2 border rounded"
-                >
-                  <option>Winter</option>
-                  <option>Spring</option>
-                  <option>Summer</option>
-                  <option>Fall</option>
-                </select>
-              </div>              
+                  <label htmlFor="season" className="text-sm font-medium">
+                    Season:
+                  </label>
+                  <select
+                    id="season"
+                    value={season}
+                    onChange={(e) => setSeason(e.target.value)}
+                    className="flex-grow p-2 border rounded"
+                  >
+                    <option>Winter</option>
+                    <option>Spring</option>
+                    <option>Summer</option>
+                    <option>Fall</option>
+                  </select>
+                </div>
               )}
 
               {imageFile && (
