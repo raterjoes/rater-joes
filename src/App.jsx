@@ -233,7 +233,7 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
           isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-4">
           {products.map((product) => (
             <ProductCard
             key={product.id}
@@ -283,7 +283,7 @@ function ProductCard({
   return (
     <Link
       to={`/products/${productId}`}
-      className="relative block bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
+      className="relative block bg-white rounded-lg shadow p-2 hover:shadow-lg transition text-sm"
     >
       {/* ✅ Seasonal tag */}
       {seasonal && season && (
@@ -297,7 +297,7 @@ function ProductCard({
       <img
         src={image}
         alt={name}
-        className="w-full h-48 object-cover rounded mb-2"
+        className="w-full h-36 object-cover rounded mb-2"
       />
       <h3 className="text-lg font-bold">{name}</h3>
 
