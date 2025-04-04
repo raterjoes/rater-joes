@@ -177,7 +177,7 @@ export default function App() {
               <a
                 key={cat}
                 href={`#${cat.toLowerCase().replace(/\s+/g, "-")}`}
-                className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                className="px-4 py-2 bg-rose-800/30 text-rose-800 rounded hover:bg-rose-200"
               >
                 {cat}
               </a>
