@@ -10,6 +10,7 @@ import winterImg from "./assets/winter.jpg";
 import springImg from "./assets/spring2.jpg";
 import summerImg from "./assets/summer.jpg";
 import fallImg from "./assets/fall.jpg";
+import otherseasonsImg from "./assets/otherseasons2.jpg"
 
 const seasonImages = {
   Winter: winterImg,
@@ -65,6 +66,11 @@ export default function Seasonal() {
         <ProductGrid products={seasonalProducts[currentSeason] || []} />
 
         <h2 className="text-3xl font-bold text-center mt-16 mb-6">Other Seasons</h2>
+
+        <img
+          src={otherseasonsImg}
+          className="w-full max-h-64 object-cover rounded shadow mb-6"
+        />
 
         <div className="space-y-10">
           {seasonOrder
