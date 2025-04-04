@@ -126,7 +126,7 @@ export default function App() {
   const totalFiltered = Object.values(categorized).flat().length;
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans">
+    <div className="flex flex-col min-h-screen bg-orange-50 text-gray-900 font-sans">
       <Navbar />
 
       <main className="flex-grow">
