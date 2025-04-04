@@ -131,7 +131,7 @@ export default function App() {
 
       <main className="flex-grow">
         <section
-          className="relative bg-cover bg-center bg-no-repeat h-[24rem] sm:h-[24rem] md:h-[26rem]"
+          className="relative bg-cover bg-center bg-no-repeat h-[24rem] sm:h-[24rem] md:h-[28rem]"
           style={{ backgroundImage: `url(${groceriesImage})` }}
         >
           <div className="absolute inset-0 flex items-center justify-center">
@@ -140,17 +140,33 @@ export default function App() {
               <p className="text-lg mb-4">
                 Find the top-rated products and share your own feedback with the community.
               </p>
-              <Link
-                to="/login"
-                className="inline-block px-6 py-3 bg-rose-900 rounded text-white hover:bg-red-700"
-              >
-                Log In
-              </Link>
+
+              {/* ✅ Conditional button */}
+              {user ? (
+                <button
+                  onClick={() => {
+                    const searchSection = document.getElementById("search-section");
+                    if (searchSection) {
+                      searchSection.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                  className="inline-block px-6 py-3 bg-rose-900 rounded text-white hover:bg-red-700"
+                >
+                  Browse
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="inline-block px-6 py-3 bg-rose-900 rounded text-white hover:bg-red-700"
+                >
+                  Log In
+                </Link>
+              )}
             </div>
           </div>
         </section>
 
-        <div className="max-w-2xl mx-auto px-4 mt-6">
+        <div id="search-section" className="max-w-2xl mx-auto px-4 mt-6">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <input
               type="text"

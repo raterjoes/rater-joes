@@ -108,7 +108,7 @@ export default function ProductPage() {
       <Navbar />
 
       <main className="flex-grow">
-        <div className="max-w-3xl mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto px-6 py-8">
           {/* Grid: Info + Image */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-8">
             {/* Left: Text Info */}
