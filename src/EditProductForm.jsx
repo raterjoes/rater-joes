@@ -10,32 +10,64 @@ function EditProductForm({ product, onCancel, onSave }) {
 
   const [name, setName] = useState(product.name);
   const [category, setCategory] = useState(product.category);
-  const [imageUrl, setImageUrl] = useState(product.image);
-  const [newImageFile, setNewImageFile] = useState(null);
+  const [existingImages, setExistingImages] = useState(product.images || []);
+  const [newImageFiles, setNewImageFiles] = useState([null]);
   const [description, setDescription] = useState(product.description);
   const [isSeasonal, setIsSeasonal] = useState(product.seasonal || false);
   const [season, setSeason] = useState(product.season || "Winter");
+
+  const handleImageRemove = (urlToRemove) => {
+    setExistingImages((prev) => prev.filter((url) => url !== urlToRemove));
+  };
+
+  const handleNewImageChange = (index, file) => {
+    const updated = [...newImageFiles];
+    updated[index] = file;
+    setNewImageFiles(updated);
+
+    if (updated.every((f) => f !== null)) {
+      setNewImageFiles([...updated, null]);
+    }
+  };
+
+  const handleRemoveNewImage = (index) => {
+    const updated = [...newImageFiles];
+    updated.splice(index, 1);
+
+    if (updated.length === 0 || updated.every((f) => f !== null)) {
+      updated.push(null);
+    }
+
+    setNewImageFiles(updated);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      let finalImageUrl = imageUrl;
+      const uploadedImageUrls = [];
 
-      if (newImageFile) {
-        const imageRef = ref(
-          storage,
-          `product-images/${Date.now()}-${newImageFile.name}`
-        );
-        await uploadBytes(imageRef, newImageFile);
-        finalImageUrl = await getDownloadURL(imageRef);
-      }
+      const uploadPromises = newImageFiles
+        .filter(Boolean)
+        .map(async (file) => {
+          const imageRef = ref(
+            storage,
+            `product-images/${Date.now()}-${file.name}`
+          );
+          await uploadBytes(imageRef, file);
+          const url = await getDownloadURL(imageRef);
+          uploadedImageUrls.push(url);
+        });
+
+      await Promise.all(uploadPromises);
+
+      const allImages = [...existingImages, ...uploadedImageUrls];
 
       await addDoc(collection(db, "product_edits"), {
         productId: product.id,
         name,
         category,
-        image: finalImageUrl,
+        images: allImages,
         description,
         seasonal: isSeasonal,
         season: isSeasonal ? season : null,
@@ -44,7 +76,7 @@ function EditProductForm({ product, onCancel, onSave }) {
         createdAt: serverTimestamp(),
       });
 
-      onSave("✅ Edit submitted for admin review."); // Pass message to parent
+      onSave("✅ Edit submitted for admin review.");
     } catch (err) {
       alert("Error submitting edit");
       console.error(err);
@@ -73,26 +105,69 @@ function EditProductForm({ product, onCancel, onSave }) {
         ))}
       </select>
 
-      {newImageFile ? (
-        <img
-          src={URL.createObjectURL(newImageFile)}
-          alt="Preview"
-          className="w-full h-48 object-cover rounded"
-        />
-      ) : imageUrl ? (
-        <img
-          src={imageUrl}
-          alt="Current"
-          className="w-full h-48 object-cover rounded"
-        />
-      ) : null}
+      {/* Existing images */}
+      {existingImages.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700">Current Images:</p>
+          {existingImages.map((url, index) => (
+            <div key={index} className="relative inline-block mr-2">
+              <img
+                src={url}
+                alt={`Existing ${index + 1}`}
+                className="w-24 h-24 object-cover rounded border"
+              />
+              <button
+                type="button"
+                onClick={() => handleImageRemove(url)}
+                className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+              >
+                ✖
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <input
-        type="file"
-        accept="image/*"
-        className="w-full p-2 border rounded"
-        onChange={(e) => setNewImageFile(e.target.files[0])}
-      />
+      {/* New images */}
+      {newImageFiles.map((file, index) => {
+        const showAddLabel =
+          newImageFiles[index] === null &&
+          (index > 0
+            ? newImageFiles[index - 1] !== null
+            : existingImages.length > 0);
+
+        return (
+          <div key={index} className="relative mt-2">
+            {showAddLabel && (
+              <p className="text-sm font-medium text-gray-700 mb-1">
+                Add another image?
+              </p>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleNewImageChange(index, e.target.files[0])}
+              className="w-full p-2 border rounded"
+            />
+            {file && (
+              <div className="relative inline-block mt-2">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`Preview ${index + 1}`}
+                  className="w-24 h-24 object-cover rounded border"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveNewImage(index)}
+                  className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                >
+                  ✖
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
 
       <textarea
         value={description}

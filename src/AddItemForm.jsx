@@ -20,7 +20,7 @@ export default function AddItemForm() {
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState(categories[0]);
-  const [imageFile, setImageFile] = useState(null);
+  const [imageInputs, setImageInputs] = useState([null]);
   const [description, setDescription] = useState("");
   const [isSeasonal, setIsSeasonal] = useState(false);
   const [season, setSeason] = useState("Winter");
@@ -35,14 +35,11 @@ export default function AddItemForm() {
     const normalizedInput = inputName.toLowerCase();
 
     let bestMatch = null;
-
     snapshot.forEach((doc) => {
       const p = doc.data();
       const name = p.name.toLowerCase();
-
       const similarity =
         normalizedInput.includes(name) || name.includes(normalizedInput);
-
       if (similarity && name !== normalizedInput) {
         bestMatch = { id: doc.id, ...p };
       }
@@ -52,22 +49,54 @@ export default function AddItemForm() {
     setCheckingDuplicates(false);
   };
 
+  const handleImageChange = (index, file) => {
+    const updated = [...imageInputs];
+    updated[index] = file;
+    setImageInputs(updated);
+
+    if (updated.every((f) => f !== null)) {
+      setImageInputs([...updated, null]);
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    const updated = [...imageInputs];
+    updated.splice(index, 1);
+
+    if (updated.length === 0 || updated.every((f) => f !== null)) {
+      updated.push(null);
+    }
+
+    setImageInputs(updated);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      let imageUrl = "";
+      const imageUrls = [];
 
-      if (imageFile) {
-        const imageRef = ref(storage, `product-images/${Date.now()}-${imageFile.name}`);
-        await uploadBytes(imageRef, imageFile);
-        imageUrl = await getDownloadURL(imageRef);
-      }
+      const uploadPromises = imageInputs
+        .filter(Boolean)
+        .map(async (file) => {
+          const uniqueSuffix = `${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 8)}`;
+          const imageRef = ref(
+            storage,
+            `product-images/${uniqueSuffix}-${file.name}`
+          );
+          await uploadBytes(imageRef, file);
+          const url = await getDownloadURL(imageRef);
+          imageUrls.push(url);
+        });
+
+      await Promise.all(uploadPromises);
 
       await addDoc(collection(db, "products"), {
         name,
         category,
-        image: imageUrl,
+        images: imageUrls,
         description,
         seasonal: isSeasonal,
         season: isSeasonal ? season : null,
@@ -94,34 +123,85 @@ export default function AddItemForm() {
               You must be logged in to add a new item.
             </p>
             <div className="flex justify-center gap-4">
-              <Link to="/" className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">🏠 Home</Link>
-              <Link to="/login" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">🔐 Log In</Link>
-              <Link to="/login" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">📝 Sign Up</Link>
+              <Link
+                to="/"
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                🏠 Home
+              </Link>
+              <Link
+                to="/login"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                🔐 Log In
+              </Link>
+              <Link
+                to="/login"
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                📝 Sign Up
+              </Link>
             </div>
           </div>
         ) : submitted ? (
           <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded text-center">
-            <h2 className="text-2xl font-bold mb-4 text-green-700">✅ Product submitted for admin review!</h2>
-            <Link to="/add-item" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <h2 className="text-2xl font-bold mb-4 text-green-700">
+              ✅ Product submitted for admin review!
+            </h2>
+            <button
+              onClick={() => {
+                setSubmitted(false);
+                setName("");
+                setCategory(categories[0]);
+                setImageInputs([null]);
+                setDescription("");
+                setIsSeasonal(false);
+                setSeason("Winter");
+                setSuggestedMatch(null);
+                setCheckingDuplicates(false);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
               + Add Another Item
-            </Link>
+            </button>
+
           </div>
         ) : (
           <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded">
             <h2 className="text-2xl font-bold mb-4">Add a New Product</h2>
 
             {checkingDuplicates && (
-              <p className="text-sm text-gray-500 mb-4">Checking for similar items...</p>
+              <p className="text-sm text-gray-500 mb-4">
+                Checking for similar items...
+              </p>
             )}
 
             {suggestedMatch && (
               <div className="bg-yellow-100 border border-yellow-400 p-3 rounded text-sm mb-4">
                 <p className="font-semibold mb-1">Did you mean this item?</p>
-                <p><strong>{suggestedMatch.name}</strong></p>
-                <p className="text-sm text-gray-600 mb-2">{suggestedMatch.description}</p>
+                <p>
+                  <strong>{suggestedMatch.name}</strong>
+                </p>
+                <p className="text-sm text-gray-600 mb-2">
+                  {suggestedMatch.description}
+                </p>
                 <div className="flex gap-4 mt-2">
-                  <button type="button" className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded" onClick={() => navigate(`/products/${suggestedMatch.id}`)}>Yes, that's it</button>
-                  <button type="button" className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded" onClick={() => setSuggestedMatch(null)}>No, continue adding</button>
+                  <button
+                    type="button"
+                    className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
+                    onClick={() =>
+                      navigate(`/products/${suggestedMatch.id}`)
+                    }
+                  >
+                    Yes, that's it
+                  </button>
+                  <button
+                    type="button"
+                    className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded"
+                    onClick={() => setSuggestedMatch(null)}
+                  >
+                    No, continue adding
+                  </button>
                 </div>
               </div>
             )}
@@ -150,12 +230,44 @@ export default function AddItemForm() {
                 ))}
               </select>
 
-              <input
-                type="file"
-                accept="image/*"
-                className="w-full p-2 border rounded"
-                onChange={(e) => setImageFile(e.target.files[0])}
-              />
+              {imageInputs.map((file, index) => {
+                const isNextEmptyInput =
+                  index > 0 && imageInputs[index] === null && imageInputs[index - 1] !== null;
+
+                return (
+                  <div key={index} className="relative mt-2">
+                    {isNextEmptyInput && (
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        Add another image?
+                      </p>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleImageChange(index, e.target.files[0])
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                    {file && (
+                      <div className="relative inline-block mt-2">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${index + 1}`}
+                          className="w-24 h-24 object-cover rounded border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        >
+                          ✖
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
               <textarea
                 placeholder="Description"
@@ -165,7 +277,6 @@ export default function AddItemForm() {
                 required
               />
 
-              {/* ✅ Seasonal checkbox */}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -173,10 +284,11 @@ export default function AddItemForm() {
                   checked={isSeasonal}
                   onChange={(e) => setIsSeasonal(e.target.checked)}
                 />
-                <label htmlFor="seasonal" className="text-sm">Limited/Seasonal?</label>
+                <label htmlFor="seasonal" className="text-sm">
+                  Limited/Seasonal?
+                </label>
               </div>
 
-              {/* ✅ Season dropdown (if seasonal) */}
               {isSeasonal && (
                 <div className="flex items-center gap-2">
                   <label htmlFor="season" className="text-sm font-medium">
@@ -194,14 +306,6 @@ export default function AddItemForm() {
                     <option>Fall</option>
                   </select>
                 </div>
-              )}
-
-              {imageFile && (
-                <img
-                  src={URL.createObjectURL(imageFile)}
-                  alt="Preview"
-                  className="w-full h-48 object-cover rounded"
-                />
               )}
 
               <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">

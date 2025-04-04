@@ -8,8 +8,6 @@ import {
   updateDoc,
   deleteDoc,
   getDocs,
-  getDoc,
-  setDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
@@ -31,7 +29,6 @@ export default function PendingProducts() {
     }
   }, [user, isAdmin, adminCheckComplete, navigate]);
 
-  // ✅ Check admin status
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) return;
@@ -43,7 +40,6 @@ export default function PendingProducts() {
     checkAdminStatus();
   }, [user]);
 
-  // 🔄 Load unapproved new products
   useEffect(() => {
     if (!user || !isAdmin) return;
     const q = query(collection(db, "products"), where("approved", "==", false));
@@ -54,7 +50,6 @@ export default function PendingProducts() {
     return () => unsubscribe();
   }, [user, isAdmin]);
 
-  // 🔄 Load unapproved product edits
   useEffect(() => {
     if (!user || !isAdmin) return;
     const q = query(collection(db, "product_edits"), where("approved", "==", false));
@@ -65,13 +60,13 @@ export default function PendingProducts() {
     return () => unsubscribe();
   }, [user, isAdmin]);
 
-  // ✅ Approve edit: copy data into products, mark edit approved
   const approveEdit = async (edit) => {
     const refToProduct = doc(db, "products", edit.productId);
     await updateDoc(refToProduct, {
       name: edit.name,
       category: edit.category,
       image: edit.image,
+      images: edit.images || [],
       description: edit.description,
       seasonal: edit.seasonal,
       season: edit.season || null,
@@ -85,7 +80,6 @@ export default function PendingProducts() {
     }
   };
 
-  // ✅ Approve new product
   const approveProduct = async (id) => {
     await updateDoc(doc(db, "products", id), { approved: true });
   };
@@ -124,13 +118,27 @@ export default function PendingProducts() {
                     </p>
                   )}
                   <p className="text-sm">{item.description}</p>
-                  {item.image && (
+
+                  {/* ✅ Show multiple images if available */}
+                  {item.images?.length > 0 ? (
+                    <div className="flex gap-2 overflow-x-auto pt-2">
+                      {item.images.map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`${item.name} ${index + 1}`}
+                          className="w-40 h-32 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  ) : item.image ? (
                     <img
                       src={item.image}
                       alt={item.name}
                       className="w-full h-40 object-cover rounded"
                     />
-                  )}
+                  ) : null}
+
                   <div className="flex gap-3 pt-2">
                     <button
                       onClick={() => approveProduct(item.id)}
@@ -168,13 +176,27 @@ export default function PendingProducts() {
                     </p>
                   )}
                   <p className="text-sm">{item.description}</p>
-                  {item.image && (
+
+                  {/* ✅ Show multiple images if available */}
+                  {item.images?.length > 0 ? (
+                    <div className="flex gap-2 overflow-x-auto pt-2">
+                      {item.images.map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`${item.name} ${index + 1}`}
+                          className="w-40 h-32 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  ) : item.image ? (
                     <img
                       src={item.image}
                       alt={item.name}
                       className="w-full h-40 object-cover rounded"
                     />
-                  )}
+                  ) : null}
+
                   <div className="flex gap-3 pt-2">
                     <button
                       onClick={() => approveEdit(item)}

@@ -16,6 +16,14 @@ import ReviewForm from "./ReviewForm";
 import EditProductForm from "./EditProductForm";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -27,12 +35,13 @@ export default function ProductPage() {
   const [editing, setEditing] = useState(false);
   const [editSuccess, setEditSuccess] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const handleReviewSubmit = async (review) => {
     if (!user) return;
 
     const { text, rating, includeName } = review;
-
     let nickname = null;
     let userEmail = null;
 
@@ -166,13 +175,56 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Right: Image */}
+            {/* Right: Carousel */}
             <div className="overflow-hidden rounded-lg shadow">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-64 object-cover"
-              />
+              {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
+                <>
+                  <Swiper
+                    modules={[Navigation, Pagination]}
+                    spaceBetween={10}
+                    slidesPerView={1}
+                    navigation
+                    pagination={{ clickable: true }}
+                  >
+                    {product.images.map((url, index) => (
+                      <SwiperSlide key={index}>
+                        <img
+                          src={url}
+                          alt={`${product.name} ${index + 1}`}
+                          onClick={() => {
+                            setLightboxIndex(index);
+                            setLightboxOpen(true);
+                          }}
+                          className="w-full h-64 object-cover cursor-pointer rounded"
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+
+                  <Lightbox
+                    open={lightboxOpen}
+                    close={() => setLightboxOpen(false)}
+                    index={lightboxIndex}
+                    slides={product.images.map((url) => ({ src: url }))}
+                    plugins={[Zoom]}
+                    zoom={{
+                      maxZoomPixelRatio: 4,     // how much you can zoom in
+                      zoomInMultiplier: 2,      // how much each click zooms in
+                      doubleTapDelay: 300,      // ms delay to trigger zoom on tap
+                      doubleClickDelay: 300,
+                      wheelZoomDistanceFactor: 100, // scroll sensitivity
+                      pinchZoomDistanceFactor: 100, // pinch sensitivity
+                    }}
+                  />
+
+                </>
+              ) : (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-64 object-cover"
+                />
+              )}
             </div>
           </div>
 
@@ -197,14 +249,12 @@ export default function ProductPage() {
             </p>
           )}
 
-          {/* ✅ Show after edit form is closed */}
           {editSuccess && (
             <p className="text-green-700 text-sm bg-green-100 p-2 rounded shadow inline-block mb-6">
               ✅ Edit submitted for admin review.
             </p>
           )}
 
-          {/* Review Form */}
           {user ? (
             <ReviewForm onSubmit={handleReviewSubmit} productId={id} />
           ) : (

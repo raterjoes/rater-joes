@@ -263,6 +263,7 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
             productId={product.id}
             name={product.name}
             image={product.image}
+            images={product.images}
             description={product.description}
             reviews={reviews[product.id] || []}
             onReviewSubmit={onReviewSubmit}
@@ -281,6 +282,7 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
 function ProductCard({
   name,
   image,
+  images,
   description,
   productId,
   reviews,
@@ -293,7 +295,8 @@ function ProductCard({
       ).toFixed(1)
     : null;
 
-  // ✅ Map emoji and color by season
+  const displayImage = images?.length ? images[0] : image;
+
   const seasonStyles = {
     Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },
     Spring: { emoji: "🌱", bg: "bg-green-100", text: "text-green-700" },
@@ -308,7 +311,6 @@ function ProductCard({
       to={`/products/${productId}`}
       className="relative block bg-white rounded-lg shadow p-2 hover:shadow-lg transition text-sm"
     >
-      {/* ✅ Seasonal tag */}
       {seasonal && season && (
         <span
           className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${style.bg} ${style.text}`}
@@ -318,7 +320,7 @@ function ProductCard({
       )}
 
       <img
-        src={image}
+        src={displayImage}
         alt={name}
         className="w-full h-36 object-cover rounded mb-2"
       />

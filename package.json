@@ -12,7 +12,9 @@
     "lucide-react": "^0.487.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.4.1"
+    "react-router-dom": "^7.4.1",
+    "swiper": "^11.2.6",
+    "yet-another-react-lightbox": "^3.22.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
