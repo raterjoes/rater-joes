@@ -142,23 +142,22 @@ export default function App() {
           </Link>
         </section>
 
-        <div className="max-w-xl mx-auto px-4 mt-6">
-          <input
-            type="text"
-            placeholder="Search for a product..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="max-w-xl mx-auto px-4 mt-4 text-right">
-          <Link
-            to="/add-item"
-            className="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            + Add New Item
-          </Link>
+        <div className="max-w-2xl mx-auto px-4 mt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <input
+              type="text"
+              placeholder="Search for a product..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-grow p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+            />
+            <Link
+              to="/add-item"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap"
+            >
+              + Add New Item
+            </Link>
+          </div>
         </div>
 
         <div className="w-full max-w-5xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-3">
