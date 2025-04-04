@@ -2,13 +2,14 @@ import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { getDoc, doc, getDocs, collection } from "firebase/firestore";
 import { db } from "./firebase";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [nickname, setNickname] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const fetchNickname = async () => {
@@ -23,7 +24,7 @@ export default function Navbar() {
     const checkAdmin = async () => {
       if (user) {
         const snapshot = await getDocs(collection(db, "admins"));
-        const adminEmails = snapshot.docs.map(doc => doc.data().email);
+        const adminEmails = snapshot.docs.map((doc) => doc.data().email);
         setIsAdmin(adminEmails.includes(user.email));
       }
     };
@@ -32,12 +33,22 @@ export default function Navbar() {
     checkAdmin();
   }, [user]);
 
-  const getInitial = (str) => {
-    return str?.charAt(0)?.toUpperCase() || "";
-  };
+  // ✅ Detect click outside to close menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getInitial = (str) => str?.charAt(0)?.toUpperCase() || "";
 
   const toggleMenu = () => {
-    setMenuOpen(prev => !prev);
+    setMenuOpen((prev) => !prev);
   };
 
   const handleLogout = () => {
@@ -82,7 +93,7 @@ export default function Navbar() {
 
         {/* ✅ Initial icon with dropdown */}
         {user && (
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={toggleMenu}
               className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600 text-white font-semibold text-sm focus:outline-none"
