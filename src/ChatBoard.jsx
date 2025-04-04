@@ -14,6 +14,7 @@ import { db, storage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import chatboardImg from "./assets/chatboard2.jpg"
 
 // ✅ Format timestamp
 function formatTimestamp(timestamp) {
@@ -148,7 +149,10 @@ export default function ChatBoard() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow max-w-3xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold mb-6">💬 Chat Board</h1>
+        <img
+            src={chatboardImg}
+            className="w-full max-h-64 object-cover rounded shadow mb-6"
+        />
 
         {/* ✅ Show form only if logged in */}
         {user ? (
