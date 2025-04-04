@@ -5,6 +5,19 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Link } from "react-router-dom";
 
+// 🌸 Season Images
+import winterImg from "./assets/winter.jpg";
+import springImg from "./assets/spring2.jpg";
+import summerImg from "./assets/summer.jpg";
+import fallImg from "./assets/fall.jpg";
+
+const seasonImages = {
+  Winter: winterImg,
+  Spring: springImg,
+  Summer: summerImg,
+  Fall: fallImg,
+};
+
 const seasonOrder = ["Winter", "Spring", "Summer", "Fall"];
 
 function getCurrentSeason() {
@@ -39,11 +52,19 @@ export default function Seasonal() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-4xl font-bold text-center mb-8"> Current</h1>
+
+        {/* 🌟 Current Season Header + Image */}
+        
+        <img
+          src={seasonImages[currentSeason]}
+          alt={currentSeason}
+          className="w-full max-h-64 object-cover rounded shadow mb-6"
+        />
+
         <h2 className="text-2xl font-semibold mb-4">{currentSeason}</h2>
         <ProductGrid products={seasonalProducts[currentSeason] || []} />
 
-        <h2 className="text-3xl font-bold text-center mt-16 mb-6"> Other Seasons</h2>
+        <h2 className="text-3xl font-bold text-center mt-16 mb-6">Other Seasons</h2>
 
         <div className="space-y-10">
           {seasonOrder
