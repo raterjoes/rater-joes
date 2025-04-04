@@ -50,14 +50,12 @@ export default function ChatBoard() {
         snapshot.docs.map(async (docSnap) => {
           const data = docSnap.data();
           let nickname = null;
-
           if (data.userId) {
             const userDoc = await getDoc(doc(db, "users", data.userId));
             if (userDoc.exists()) {
               nickname = userDoc.data().nickname;
             }
           }
-
           return {
             id: docSnap.id,
             ...data,
@@ -81,14 +79,12 @@ export default function ChatBoard() {
           snapshot.docs.map(async (docSnap) => {
             const data = docSnap.data();
             let nickname = null;
-
             if (data.userId) {
               const userDoc = await getDoc(doc(db, "users", data.userId));
               if (userDoc.exists()) {
                 nickname = userDoc.data().nickname;
               }
             }
-
             return {
               id: docSnap.id,
               ...data,
@@ -154,33 +150,40 @@ export default function ChatBoard() {
       <main className="flex-grow max-w-3xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold mb-6">💬 Chat Board</h1>
 
-        <form onSubmit={handleNewPost} className="mb-6 space-y-2">
-          <textarea
-            value={newPostText}
-            onChange={(e) => setNewPostText(e.target.value)}
-            placeholder="Write a new post..."
-            className="w-full p-2 border rounded"
-            rows={3}
-          />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setNewPostImage(e.target.files[0])}
-          />
-          {newPostImage && (
-            <img
-              src={URL.createObjectURL(newPostImage)}
-              alt="preview"
-              className="w-32 h-32 object-cover rounded border"
+        {/* ✅ Show form only if logged in */}
+        {user ? (
+          <form onSubmit={handleNewPost} className="mb-6 space-y-2">
+            <textarea
+              value={newPostText}
+              onChange={(e) => setNewPostText(e.target.value)}
+              placeholder="Write a new post..."
+              className="w-full p-2 border rounded"
+              rows={3}
             />
-          )}
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Post
-          </button>
-        </form>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setNewPostImage(e.target.files[0])}
+            />
+            {newPostImage && (
+              <img
+                src={URL.createObjectURL(newPostImage)}
+                alt="preview"
+                className="w-32 h-32 object-cover rounded border"
+              />
+            )}
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Post
+            </button>
+          </form>
+        ) : (
+          <p className="text-center text-sm text-red-600 mb-6">
+            You must be logged in to write a post.
+          </p>
+        )}
 
         {posts.map((post) => (
           <div key={post.id} className="mb-8 border rounded p-4 bg-white shadow">
@@ -213,30 +216,37 @@ export default function ChatBoard() {
               ))}
             </div>
 
-            <div className="mt-4 space-y-1">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={commentInputs[post.id] || ""}
-                onChange={(e) =>
-                  setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
-                }
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  setCommentImages((prev) => ({ ...prev, [post.id]: e.target.files[0] }))
-                }
-              />
-              <button
-                onClick={() => handleNewComment(post.id)}
-                className="mt-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Comment
-              </button>
-            </div>
+            {/* ✅ Show comment form only if logged in */}
+            {user ? (
+              <div className="mt-4 space-y-1">
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={commentInputs[post.id] || ""}
+                  onChange={(e) =>
+                    setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
+                  }
+                  className="w-full p-2 border rounded"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setCommentImages((prev) => ({ ...prev, [post.id]: e.target.files[0] }))
+                  }
+                />
+                <button
+                  onClick={() => handleNewComment(post.id)}
+                  className="mt-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Comment
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-red-500 mt-4">
+                Please log in to comment.
+              </p>
+            )}
           </div>
         ))}
       </main>
