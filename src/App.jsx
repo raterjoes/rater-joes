@@ -21,6 +21,7 @@ import categories from "./categories";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Contact from "./Contact";
+import groceriesImage from "./assets/groceries.jpg";
 
 export default function App() {
   const { user } = useAuth();
@@ -129,17 +130,24 @@ export default function App() {
       <Navbar />
 
       <main className="flex-grow">
-        <section className="bg-black text-white text-center py-12">
-          <h2 className="text-4xl font-bold mb-4">Explore Trader Joe's Reviews</h2>
-          <p className="text-lg">
-            Find the top-rated products and share your own feedback with the community.
-          </p>
-          <Link
-            to="/login"
-            className="inline-block mt-6 px-6 py-3 bg-red-600 rounded text-white hover:bg-red-700"
-          >
-            Log In
-          </Link>
+        <section
+          className="relative bg-cover bg-center bg-no-repeat h-[24rem] sm:h-[24rem] md:h-[26rem]"
+          style={{ backgroundImage: `url(${groceriesImage})` }}
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-rose-800/80 w-[60%] text-white text-center p-6 rounded shadow-lg">
+              <h2 className="text-4xl font-bold mb-4">Explore Trader Joe's Reviews</h2>
+              <p className="text-lg mb-4">
+                Find the top-rated products and share your own feedback with the community.
+              </p>
+              <Link
+                to="/login"
+                className="inline-block px-6 py-3 bg-rose-900 rounded text-white hover:bg-red-700"
+              >
+                Log In
+              </Link>
+            </div>
+          </div>
         </section>
 
         <div className="max-w-2xl mx-auto px-4 mt-6">

@@ -36,8 +36,8 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-gray-100 shadow p-4 flex justify-between items-center">
-      <Link to="/" className="text-xl font-bold text-red-700 hover:underline">
+    <header className="bg-rose-800/80 shadow p-4 flex justify-between items-center">
+      <Link to="/" className="text-xl font-bold text-white hover:underline">
         Rater Joe’s
       </Link>
 
@@ -45,40 +45,40 @@ export default function Navbar() {
         <nav className="space-x-4 flex items-center">
           {user ? (
             <>
-              <span className="text-sm text-gray-600 italic">
+              <span className="text-sm text-white italic">
                 Hi, {nickname || user.email}
               </span>
               {isAdmin && (
-                <Link to="/pending-products" className="text-blue-600 hover:underline">
+                <Link to="/pending-products" className="text-white hover:underline">
                   Pending Products
                 </Link>
               )}
               <button
                 onClick={logout}
-                className="text-blue-600 hover:underline"
+                className="text-white hover:underline"
               >
                 Log Out
               </button>
             </>
           ) : (
-            <Link to="/login" className="text-blue-600 hover:underline">
+            <Link to="/login" className="text-white hover:underline">
               Log In
             </Link>
           )}
-          <Link to="/contact" className="text-blue-600 hover:underline">
+          <Link to="/contact" className="text-white hover:underline">
             Contact
           </Link>
-          <Link to="/chat" className="text-blue-600 hover:underline">
+          <Link to="/chat" className="text-white hover:underline">
             Chat
           </Link>
-          <Link to="/seasonal" className="text-blue-600 hover:underline">
+          <Link to="/seasonal" className="text-white hover:underline">
             Seasonal
           </Link>
         </nav>
 
         {/* ✅ Initial icon (1 letter) */}
         {user && (
-          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-semibold text-sm">
+          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600 text-white font-semibold text-sm">
             {getInitial(nickname || user.email)}
           </div>
         )}
