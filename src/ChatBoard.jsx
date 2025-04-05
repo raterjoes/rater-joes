@@ -14,9 +14,8 @@ import { db, storage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import chatboardImg from "./assets/chatboard2.jpg"
+import chatboardImg from "./assets/chatboard2.jpg";
 
-// ✅ Format timestamp
 function formatTimestamp(timestamp) {
   if (!timestamp) return "";
   const date = timestamp.toDate();
@@ -146,15 +145,15 @@ export default function ChatBoard() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-x-hidden bg-gray-50">
       <Navbar />
       <main className="flex-grow max-w-3xl mx-auto px-4 py-10">
         <img
-            src={chatboardImg}
-            className="w-full max-h-64 object-cover rounded shadow mb-6"
+          src={chatboardImg}
+          className="w-full max-h-64 object-cover rounded shadow mb-6"
+          alt="Chat board header"
         />
 
-        {/* ✅ Show form only if logged in */}
         {user ? (
           <form onSubmit={handleNewPost} className="mb-6 space-y-2">
             <textarea
@@ -167,6 +166,7 @@ export default function ChatBoard() {
             <input
               type="file"
               accept="image/*"
+              className="max-w-full"
               onChange={(e) => setNewPostImage(e.target.files[0])}
             />
             {newPostImage && (
@@ -193,7 +193,11 @@ export default function ChatBoard() {
           <div key={post.id} className="mb-8 border rounded p-4 bg-white shadow">
             <p className="text-sm text-gray-800 mb-1">{post.text}</p>
             {post.image && (
-              <img src={post.image} alt="Post" className="w-full max-w-sm mb-2" />
+              <img
+                src={post.image}
+                alt="Post"
+                className="w-full max-w-full sm:max-w-sm mb-2 rounded"
+              />
             )}
             <p className="text-xs text-gray-500 mb-3">
               by {post.nickname} • {formatTimestamp(post.createdAt)}
@@ -210,7 +214,7 @@ export default function ChatBoard() {
                     <img
                       src={comment.image}
                       alt="Comment"
-                      className="mt-1 w-40 h-auto rounded"
+                      className="mt-1 max-w-full sm:w-40 h-auto rounded"
                     />
                   )}
                   <p className="text-xs text-gray-500">
@@ -220,7 +224,6 @@ export default function ChatBoard() {
               ))}
             </div>
 
-            {/* ✅ Show comment form only if logged in */}
             {user ? (
               <div className="mt-4 space-y-1">
                 <input
@@ -228,15 +231,22 @@ export default function ChatBoard() {
                   placeholder="Add a comment..."
                   value={commentInputs[post.id] || ""}
                   onChange={(e) =>
-                    setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
+                    setCommentInputs((prev) => ({
+                      ...prev,
+                      [post.id]: e.target.value,
+                    }))
                   }
                   className="w-full p-2 border rounded"
                 />
                 <input
                   type="file"
                   accept="image/*"
+                  className="max-w-full"
                   onChange={(e) =>
-                    setCommentImages((prev) => ({ ...prev, [post.id]: e.target.files[0] }))
+                    setCommentImages((prev) => ({
+                      ...prev,
+                      [post.id]: e.target.files[0],
+                    }))
                   }
                 />
                 <button
