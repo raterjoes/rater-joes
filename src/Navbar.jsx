@@ -103,14 +103,22 @@ export default function Navbar() {
           {/* User avatar dropdown (always visible) */}
           {user && (
             <div className="relative" ref={dropdownRef}>
+              {/* User initial button – always visible */}
               <button
-                onClick={toggleMenu}
+                onClick={(e) => {
+                  // Only toggle menu on desktop (sm and up)
+                  if (window.innerWidth >= 640) {
+                    toggleMenu();
+                  }
+                }}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600 text-white font-semibold text-sm focus:outline-none"
               >
                 {getInitial(nickname || user.email)}
               </button>
+
+              {/* Dropdown – only visible on desktop */}
               <div
-                className={`absolute right-0 mt-2 bg-white border shadow rounded text-sm z-50 transform transition-all duration-200 ease-out ${
+                className={`hidden sm:block absolute right-0 mt-2 bg-white border shadow rounded text-sm z-50 transform transition-all duration-200 ease-out ${
                   menuOpen
                     ? "opacity-100 scale-100"
                     : "opacity-0 scale-95 pointer-events-none"
