@@ -63,7 +63,7 @@ export default function Navbar() {
           Rater Joe’s
         </Link>
 
-        {/* Right side */}
+        {/* Right side controls */}
         <div className="flex items-center gap-4">
           {/* Hamburger for mobile */}
           <button
@@ -100,9 +100,9 @@ export default function Navbar() {
             </Link>
           </nav>
 
-          {/* User avatar dropdown */}
+          {/* User avatar dropdown (now always visible) */}
           {user && (
-            <div className="hidden sm:block relative" ref={dropdownRef}>
+            <div className="relative" ref={dropdownRef}>
               <button
                 onClick={toggleMenu}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600 text-white font-semibold text-sm focus:outline-none"
