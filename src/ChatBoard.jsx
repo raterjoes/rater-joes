@@ -166,7 +166,7 @@ export default function ChatBoard() {
             <input
               type="file"
               accept="image/*"
-              className="max-w-full"
+              className="block w-full max-w-xs text-sm"
               onChange={(e) => setNewPostImage(e.target.files[0])}
             />
             {newPostImage && (
@@ -241,7 +241,7 @@ export default function ChatBoard() {
                 <input
                   type="file"
                   accept="image/*"
-                  className="max-w-full"
+                  className="block w-full max-w-xs text-sm"
                   onChange={(e) =>
                     setCommentImages((prev) => ({
                       ...prev,
