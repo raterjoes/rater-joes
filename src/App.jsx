@@ -131,13 +131,13 @@ export default function App() {
 
       <main className="flex-grow">
         <section
-          className="relative bg-cover bg-center bg-no-repeat h-[24rem] sm:h-[24rem] md:h-[28rem]"
+          className="relative bg-cover bg-center bg-no-repeat h-[16rem] sm:h-[24rem] md:h-[28rem]"
           style={{ backgroundImage: `url(${groceriesImage})` }}
         >
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-rose-800/80 w-[60%] text-white text-center p-6 rounded shadow-lg">
-              <h2 className="text-4xl font-bold mb-4">Explore Trader Joe's Reviews</h2>
-              <p className="text-lg mb-4">
+            <div className="bg-rose-800/80 w-[90%] sm:w-[70%] md:w-[60%] text-white text-center p-4 sm:p-6 rounded shadow-lg">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4">Explore Trader Joe's Reviews</h2>
+              <p className="text-base sm:text-lg mb-3 sm:mb-4">
                 Find the top-rated products and share your own feedback with the community.
               </p>
 
