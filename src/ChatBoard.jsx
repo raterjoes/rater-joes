@@ -8,8 +8,15 @@ import {
   orderBy,
   doc,
   getDoc,
+  deleteDoc,
+  getDocs
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from "firebase/storage";
 import { db, storage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
@@ -36,12 +43,25 @@ function formatTimestamp(timestamp) {
 
 export default function ChatBoard() {
   const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [posts, setPosts] = useState([]);
   const [newPostText, setNewPostText] = useState("");
   const [newPostImage, setNewPostImage] = useState(null);
   const [comments, setComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [commentImages, setCommentImages] = useState({});
+  const [expandedPosts, setExpandedPosts] = useState({});
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (user) {
+        const snapshot = await getDocs(collection(db, "admins"));
+        const adminEmails = snapshot.docs.map((doc) => doc.data().email);
+        setIsAdmin(adminEmails.includes(user.email));
+      }
+    };
+    checkAdmin();
+  }, [user]);
 
   useEffect(() => {
     const q = query(collection(db, "chat_posts"), orderBy("createdAt", "desc"));
@@ -64,6 +84,11 @@ export default function ChatBoard() {
         })
       );
       setPosts(list);
+      const initialExpanded = {};
+      list.forEach((post) => {
+        initialExpanded[post.id] = true;
+      });
+      setExpandedPosts(initialExpanded);
     });
     return () => unsubscribe();
   }, []);
@@ -144,6 +169,52 @@ export default function ChatBoard() {
     setCommentImages((prev) => ({ ...prev, [postId]: null }));
   };
 
+  const deletePost = async (postId, imageUrl) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      const commentsSnapshot = await getDocs(collection(db, "chat_posts", postId, "comments"));
+      for (const docSnap of commentsSnapshot.docs) {
+        const data = docSnap.data();
+        if (data.image) {
+          const imageRef = ref(storage, data.image);
+          await deleteObject(imageRef).catch(() => {});
+        }
+        await deleteDoc(docSnap.ref);
+      }
+
+      if (imageUrl) {
+        const imageRef = ref(storage, imageUrl);
+        await deleteObject(imageRef).catch(() => {});
+      }
+
+      await deleteDoc(doc(db, "chat_posts", postId));
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      alert("Failed to delete post.");
+    }
+  };
+
+  const deleteComment = async (postId, commentId, imageUrl) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    try {
+      if (imageUrl) {
+        const imageRef = ref(storage, imageUrl);
+        await deleteObject(imageRef).catch(() => {});
+      }
+      await deleteDoc(doc(db, "chat_posts", postId, "comments", commentId));
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      alert("Failed to delete comment.");
+    }
+  };
+
+  const toggleComments = (postId) => {
+    setExpandedPosts((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
+  };
+
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden bg-gray-50">
       <Navbar />
@@ -154,7 +225,7 @@ export default function ChatBoard() {
           alt="Chat board header"
         />
 
-        {user ? (
+        {user && (
           <form onSubmit={handleNewPost} className="mb-6 space-y-2">
             <textarea
               value={newPostText}
@@ -183,10 +254,6 @@ export default function ChatBoard() {
               Post
             </button>
           </form>
-        ) : (
-          <p className="text-center text-sm text-red-600 mb-6">
-            You must be logged in to write a post.
-          </p>
         )}
 
         {posts.map((post) => (
@@ -199,67 +266,93 @@ export default function ChatBoard() {
                 className="w-full max-w-full sm:max-w-sm mb-2 rounded"
               />
             )}
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-gray-500 mb-1">
               by {post.nickname} • {formatTimestamp(post.createdAt)}
             </p>
+            {isAdmin && (
+              <button
+                onClick={() => deletePost(post.id, post.image)}
+                className="text-red-500 text-sm mb-2 hover:underline"
+              >
+                Delete Post
+              </button>
+            )}
 
-            <div className="space-y-2">
-              {(comments[post.id] || []).map((comment) => (
-                <div
-                  key={comment.id}
-                  className="ml-4 p-2 bg-gray-50 border rounded"
-                >
-                  <p className="text-sm text-gray-800">{comment.text}</p>
-                  {comment.image && (
-                    <img
-                      src={comment.image}
-                      alt="Comment"
-                      className="mt-1 max-w-full sm:w-40 h-auto rounded"
-                    />
-                  )}
-                  <p className="text-xs text-gray-500">
-                    by {comment.nickname} • {formatTimestamp(comment.createdAt)}
-                  </p>
+            <button
+              onClick={() => toggleComments(post.id)}
+              className="text-blue-600 text-sm mb-2 hover:underline block"
+            >
+              {expandedPosts[post.id]
+                ? "Hide Comments"
+                : `Show Comments (${(comments[post.id] || []).length})`}
+            </button>
+
+            {expandedPosts[post.id] && (
+              <>
+                <div className="space-y-2">
+                  {(comments[post.id] || []).map((comment) => (
+                    <div key={comment.id} className="ml-4 p-2 bg-gray-50 border rounded">
+                      <p className="text-sm text-gray-800">{comment.text}</p>
+                      {comment.image && (
+                        <img
+                          src={comment.image}
+                          alt="Comment"
+                          className="mt-1 max-w-full sm:w-40 h-auto rounded"
+                        />
+                      )}
+                      <p className="text-xs text-gray-500">
+                        by {comment.nickname} • {formatTimestamp(comment.createdAt)}
+                        {isAdmin && (
+                          <button
+                            onClick={() => deleteComment(post.id, comment.id, comment.image)}
+                            className="ml-2 text-red-500 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {user ? (
-              <div className="mt-4 space-y-1">
-                <input
-                  type="text"
-                  placeholder="Add a comment..."
-                  value={commentInputs[post.id] || ""}
-                  onChange={(e) =>
-                    setCommentInputs((prev) => ({
-                      ...prev,
-                      [post.id]: e.target.value,
-                    }))
-                  }
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="block w-full max-w-xs text-sm"
-                  onChange={(e) =>
-                    setCommentImages((prev) => ({
-                      ...prev,
-                      [post.id]: e.target.files[0],
-                    }))
-                  }
-                />
-                <button
-                  onClick={() => handleNewComment(post.id)}
-                  className="mt-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  Comment
-                </button>
-              </div>
-            ) : (
-              <p className="text-sm text-red-500 mt-4">
-                Please log in to comment.
-              </p>
+                {user ? (
+                  <div className="mt-4 space-y-1">
+                    <input
+                      type="text"
+                      placeholder="Add a comment..."
+                      value={commentInputs[post.id] || ""}
+                      onChange={(e) =>
+                        setCommentInputs((prev) => ({
+                          ...prev,
+                          [post.id]: e.target.value,
+                        }))
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="block w-full max-w-xs text-sm"
+                      onChange={(e) =>
+                        setCommentImages((prev) => ({
+                          ...prev,
+                          [post.id]: e.target.files[0],
+                        }))
+                      }
+                    />
+                    <button
+                      onClick={() => handleNewComment(post.id)}
+                      className="mt-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Comment
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-red-500 mt-4">
+                    Please log in to comment.
+                  </p>
+                )}
+              </>
             )}
           </div>
         ))}
