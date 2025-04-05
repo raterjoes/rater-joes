@@ -100,7 +100,7 @@ export default function Navbar() {
             </Link>
           </nav>
 
-          {/* User avatar dropdown (now always visible) */}
+          {/* User avatar dropdown (always visible) */}
           {user && (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -109,61 +109,67 @@ export default function Navbar() {
               >
                 {getInitial(nickname || user.email)}
               </button>
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 bg-white border shadow rounded text-sm z-50">
-                  <button
-                    onClick={handleLogout}
-                    className="block px-4 py-2 w-full text-left text-red-600 whitespace-nowrap hover:bg-gray-100"
-                  >
-                    Log Out
-                  </button>
-                </div>
-              )}
+              <div
+                className={`absolute right-0 mt-2 bg-white border shadow rounded text-sm z-50 transform transition-all duration-200 ease-out ${
+                  menuOpen
+                    ? "opacity-100 scale-100"
+                    : "opacity-0 scale-95 pointer-events-none"
+                }`}
+              >
+                <button
+                  onClick={handleLogout}
+                  className="block px-4 py-2 w-full text-left text-red-600 whitespace-nowrap hover:bg-gray-100"
+                >
+                  Log Out
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Mobile dropdown menu */}
-      {mobileMenuOpen && (
-        <div className="sm:hidden mt-3 space-y-2 text-white">
-          {user && (
-            <div className="italic">Hi, {nickname || user.email}</div>
-          )}
-          {user && isAdmin && (
-            <>
-              <Link to="/pending-products" className="block hover:underline">
-                Pending Products
-              </Link>
-              <Link to="/pending-review-images" className="block hover:underline">
-                Pending Review Images
-              </Link>
-            </>
-          )}
-          <Link to="/contact" className="block hover:underline">
-            Contact
-          </Link>
-          <Link to="/chat" className="block hover:underline">
-            Chat
-          </Link>
-          <Link to="/seasonal" className="block hover:underline">
-            Seasonal
-          </Link>
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="block text-left text-red-300 hover:underline mt-2"
-            >
-              Log Out
-            </button>
-          )}
-          {!user && (
-            <Link to="/login" className="block hover:underline">
-              Log In
+      {/* Mobile dropdown menu (animated) */}
+      <div
+        className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        } mt-3 space-y-2 text-white`}
+      >
+        {user && (
+          <div className="italic">Hi, {nickname || user.email}</div>
+        )}
+        {user && isAdmin && (
+          <>
+            <Link to="/pending-products" className="block hover:underline">
+              Pending Products
             </Link>
-          )}
-        </div>
-      )}
+            <Link to="/pending-review-images" className="block hover:underline">
+              Pending Review Images
+            </Link>
+          </>
+        )}
+        <Link to="/contact" className="block hover:underline">
+          Contact
+        </Link>
+        <Link to="/chat" className="block hover:underline">
+          Chat
+        </Link>
+        <Link to="/seasonal" className="block hover:underline">
+          Seasonal
+        </Link>
+        {user && (
+          <button
+            onClick={handleLogout}
+            className="block text-left text-red-300 hover:underline mt-2"
+          >
+            Log Out
+          </button>
+        )}
+        {!user && (
+          <Link to="/login" className="block hover:underline">
+            Log In
+          </Link>
+        )}
+      </div>
     </header>
   );
 }
