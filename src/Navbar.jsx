@@ -98,15 +98,18 @@ export default function Navbar() {
             <Link to="/seasonal" className="hover:underline">
               Seasonal
             </Link>
+            {!user && (
+              <Link to="/login" className="hover:underline">
+                Log In
+              </Link>
+            )}
           </nav>
 
-          {/* User avatar dropdown (always visible) */}
+          {/* User avatar dropdown (always visible when logged in) */}
           {user && (
             <div className="relative" ref={dropdownRef}>
-              {/* User initial button – always visible */}
               <button
                 onClick={(e) => {
-                  // Only toggle menu on desktop (sm and up)
                   if (window.innerWidth >= 640) {
                     toggleMenu();
                   }
@@ -116,7 +119,7 @@ export default function Navbar() {
                 {getInitial(nickname || user.email)}
               </button>
 
-              {/* Dropdown – only visible on desktop */}
+              {/* Desktop dropdown */}
               <div
                 className={`hidden sm:block absolute right-0 mt-2 bg-white border shadow rounded text-sm z-50 transform transition-all duration-200 ease-out ${
                   menuOpen
@@ -136,7 +139,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile dropdown menu (animated) */}
+      {/* Mobile dropdown menu */}
       <div
         className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
           mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
