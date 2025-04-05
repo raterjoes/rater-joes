@@ -70,9 +70,14 @@ export default function Navbar() {
                 Hi, {nickname || user.email}
               </span>
               {isAdmin && (
-                <Link to="/pending-products" className="text-white hover:underline">
-                  Pending Products
-                </Link>
+                <>
+                  <Link to="/pending-products" className="text-white hover:underline">
+                    Pending Products
+                  </Link>
+                  <Link to="/pending-review-images" className="text-white hover:underline">
+                    Pending Review Images
+                  </Link>
+                </>
               )}
             </>
           ) : (

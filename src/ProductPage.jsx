@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { db } from "./firebase";
+import { db, storage } from "./firebase";
 import {
   collection,
   doc,
@@ -10,7 +10,10 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
+  getDocs,
+  deleteDoc,
 } from "firebase/firestore";
+import { ref as storageRef, deleteObject } from "firebase/storage";
 import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
 import EditProductForm from "./EditProductForm";
@@ -37,6 +40,10 @@ export default function ProductPage() {
   const [showLoginMessage, setShowLoginMessage] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [reviewLightboxOpen, setReviewLightboxOpen] = useState(false);
+  const [reviewLightboxImages, setReviewLightboxImages] = useState([]);
+  const [reviewLightboxIndex, setReviewLightboxIndex] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleReviewSubmit = async (review) => {
     if (!user) return;
@@ -72,6 +79,44 @@ export default function ProductPage() {
     }
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this review?");
+    if (!confirmed) return;
+
+    try {
+      const imagesSnap = await getDocs(collection(db, `reviews/${reviewId}/images`));
+      for (const docSnap of imagesSnap.docs) {
+        const { url } = docSnap.data();
+        if (url) {
+          try {
+            const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+            const imgRef = storageRef(storage, path);
+            await deleteObject(imgRef);
+          } catch (err) {
+            console.warn("Failed to delete image from storage:", err);
+          }
+        }
+        await deleteDoc(docSnap.ref);
+      }
+
+      await deleteDoc(doc(db, "reviews", reviewId));
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    } catch (err) {
+      console.error("Failed to delete review:", err);
+      alert("Could not delete review.");
+    }
+  };
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) return;
+      const snapshot = await getDocs(collection(db, "admins"));
+      const emails = snapshot.docs.map((doc) => doc.data().email);
+      setIsAdmin(emails.includes(user.email));
+    };
+    checkAdmin();
+  }, [user]);
+
   useEffect(() => {
     const fetchProduct = async () => {
       const docRef = doc(db, "products", id);
@@ -84,9 +129,23 @@ export default function ProductPage() {
     fetchProduct();
 
     const q = query(collection(db, "reviews"), where("productId", "==", id));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => doc.data());
-      setReviews(data);
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const reviewsWithImages = await Promise.all(
+        snapshot.docs.map(async (docSnap) => {
+          const review = { id: docSnap.id, ...docSnap.data() };
+
+          const imageDocs = await getDocs(collection(db, `reviews/${docSnap.id}/images`));
+          const allImages = imageDocs.docs.map((imgDoc) => imgDoc.data());
+          const approvedImages = allImages.filter((img) => img.approved);
+
+          review.images = approvedImages;
+          review._hasPendingImages = allImages.length > 0 && approvedImages.length === 0;
+
+          return review;
+        })
+      );
+
+      setReviews(reviewsWithImages);
     });
 
     return () => unsubscribe();
@@ -118,18 +177,15 @@ export default function ProductPage() {
 
       <main className="flex-grow">
         <div className="max-w-4xl mx-auto px-6 py-8">
-          {/* Grid: Info + Image */}
+          {/* Product Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-8">
-            {/* Left: Text Info */}
             <div>
               <h1 className="text-4xl font-serif font-bold text-gray-800 mb-2">
                 {product.name}
               </h1>
-
               <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
                 {product.category}
               </p>
-
               {average ? (
                 <div className="flex items-center text-yellow-500 mb-2">
                   {"⭐".repeat(Math.round(average))}
@@ -138,7 +194,6 @@ export default function ProductPage() {
               ) : (
                 <p className="text-gray-400 mb-2">Not yet rated</p>
               )}
-
               {product.seasonal && product.season && (() => {
                 const seasonStyles = {
                   Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },
@@ -149,15 +204,12 @@ export default function ProductPage() {
                 const style = seasonStyles[product.season] || {};
                 return (
                   <div className="mb-2">
-                    <span
-                      className={`inline-block text-xs font-semibold px-3 py-1 rounded-full shadow-sm ${style.bg} ${style.text}`}
-                    >
+                    <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full shadow-sm ${style.bg} ${style.text}`}>
                       {style.emoji} Limited time: {product.season}
                     </span>
                   </div>
                 );
               })()}
-
               <div className="mb-4">
                 <button
                   onClick={() => {
@@ -175,9 +227,8 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Right: Carousel */}
             <div className="overflow-hidden rounded-lg shadow">
-              {product.images && Array.isArray(product.images) && product.images.length > 0 ? (
+              {product.images?.length ? (
                 <>
                   <Swiper
                     modules={[Navigation, Pagination]}
@@ -186,13 +237,13 @@ export default function ProductPage() {
                     navigation
                     pagination={{ clickable: true }}
                   >
-                    {product.images.map((url, index) => (
-                      <SwiperSlide key={index}>
+                    {product.images.map((url, i) => (
+                      <SwiperSlide key={i}>
                         <img
                           src={url}
-                          alt={`${product.name} ${index + 1}`}
+                          alt={`Image ${i + 1}`}
                           onClick={() => {
-                            setLightboxIndex(index);
+                            setLightboxIndex(i);
                             setLightboxOpen(true);
                           }}
                           className="w-full h-64 object-cover cursor-pointer rounded"
@@ -200,23 +251,14 @@ export default function ProductPage() {
                       </SwiperSlide>
                     ))}
                   </Swiper>
-
                   <Lightbox
                     open={lightboxOpen}
                     close={() => setLightboxOpen(false)}
                     index={lightboxIndex}
                     slides={product.images.map((url) => ({ src: url }))}
                     plugins={[Zoom]}
-                    zoom={{
-                      maxZoomPixelRatio: 4,     // how much you can zoom in
-                      zoomInMultiplier: 2,      // how much each click zooms in
-                      doubleTapDelay: 300,      // ms delay to trigger zoom on tap
-                      doubleClickDelay: 300,
-                      wheelZoomDistanceFactor: 100, // scroll sensitivity
-                      pinchZoomDistanceFactor: 100, // pinch sensitivity
-                    }}
+                    zoom={{ maxZoomPixelRatio: 4 }}
                   />
-
                 </>
               ) : (
                 <img
@@ -228,7 +270,6 @@ export default function ProductPage() {
             </div>
           </div>
 
-          {/* Description or Edit Form */}
           {editing ? (
             <EditProductForm
               product={product}
@@ -283,24 +324,69 @@ export default function ProductPage() {
             </div>
 
             {sortedReviews.length ? (
-              sortedReviews.map((r, i) => (
+              sortedReviews.map((r) => (
                 <div
-                  key={i}
+                  key={r.id}
                   className="bg-white p-4 rounded border border-gray-200 shadow-sm mb-4"
                 >
                   <div className="font-bold text-yellow-500 text-lg mb-1">
                     {r.rating} ⭐
                   </div>
                   <p className="text-gray-800">{r.text}</p>
+
+                  {r.images?.length > 0 && (
+                    <div className="flex gap-2 mt-3 overflow-x-auto">
+                      {r.images.map((img, imgIdx) => (
+                        <img
+                          key={imgIdx}
+                          src={img.url}
+                          alt={`Review Image ${imgIdx + 1}`}
+                          onClick={() => {
+                            setReviewLightboxImages(r.images.map((img) => img.url));
+                            setReviewLightboxIndex(imgIdx);
+                            setReviewLightboxOpen(true);
+                          }}
+                          className="w-24 h-24 object-cover rounded cursor-pointer border"
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {user && user.email === r.userEmail && r._hasPendingImages && (
+                    <p className="text-xs text-yellow-600 italic mt-2">
+                      🕓 Images pending review
+                    </p>
+                  )}
+
                   <p className="text-xs italic text-gray-500 mt-2">
                     by {r.nickname || r.userEmail || "Anonymous"}
                   </p>
+
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleDeleteReview(r.id)}
+                      className="text-red-600 text-xs mt-2 hover:underline"
+                    >
+                      🗑️ Delete Review
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
               <p className="text-sm text-gray-600">No reviews yet.</p>
             )}
           </section>
+
+          {reviewLightboxOpen && (
+            <Lightbox
+              open={reviewLightboxOpen}
+              close={() => setReviewLightboxOpen(false)}
+              index={reviewLightboxIndex}
+              slides={reviewLightboxImages.map((src) => ({ src }))}
+              plugins={[Zoom]}
+              zoom={{ maxZoomPixelRatio: 4 }}
+            />
+          )}
         </div>
       </main>
 
