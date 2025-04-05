@@ -249,7 +249,7 @@ export default function ChatBoard() {
             )}
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-rose-800/80 text-white rounded hover:bg-blue-700"
             >
               Post
             </button>
@@ -287,73 +287,77 @@ export default function ChatBoard() {
                 : `Show Comments (${(comments[post.id] || []).length})`}
             </button>
 
-            {expandedPosts[post.id] && (
-              <>
-                <div className="space-y-2">
-                  {(comments[post.id] || []).map((comment) => (
-                    <div key={comment.id} className="ml-4 p-2 bg-gray-50 border rounded">
-                      <p className="text-sm text-gray-800">{comment.text}</p>
-                      {comment.image && (
-                        <img
-                          src={comment.image}
-                          alt="Comment"
-                          className="mt-1 max-w-full sm:w-40 h-auto rounded"
-                        />
+            <div
+              className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                expandedPosts[post.id] ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <div className="space-y-2 mt-2">
+                {(comments[post.id] || []).map((comment) => (
+                  <div key={comment.id} className="ml-4 p-2 bg-gray-50 border rounded">
+                    <p className="text-sm text-gray-800">{comment.text}</p>
+                    {comment.image && (
+                      <img
+                        src={comment.image}
+                        alt="Comment"
+                        className="mt-1 max-w-full sm:w-40 h-auto rounded"
+                      />
+                    )}
+                    <p className="text-xs text-gray-500">
+                      by {comment.nickname} • {formatTimestamp(comment.createdAt)}
+                      {isAdmin && (
+                        <button
+                          onClick={() =>
+                            deleteComment(post.id, comment.id, comment.image)
+                          }
+                          className="ml-2 text-red-500 hover:underline"
+                        >
+                          Delete
+                        </button>
                       )}
-                      <p className="text-xs text-gray-500">
-                        by {comment.nickname} • {formatTimestamp(comment.createdAt)}
-                        {isAdmin && (
-                          <button
-                            onClick={() => deleteComment(post.id, comment.id, comment.image)}
-                            className="ml-2 text-red-500 hover:underline"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {user ? (
-                  <div className="mt-4 space-y-1">
-                    <input
-                      type="text"
-                      placeholder="Add a comment..."
-                      value={commentInputs[post.id] || ""}
-                      onChange={(e) =>
-                        setCommentInputs((prev) => ({
-                          ...prev,
-                          [post.id]: e.target.value,
-                        }))
-                      }
-                      className="w-full p-2 border rounded"
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="block w-full max-w-xs text-sm"
-                      onChange={(e) =>
-                        setCommentImages((prev) => ({
-                          ...prev,
-                          [post.id]: e.target.files[0],
-                        }))
-                      }
-                    />
-                    <button
-                      onClick={() => handleNewComment(post.id)}
-                      className="mt-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      Comment
-                    </button>
+                    </p>
                   </div>
-                ) : (
-                  <p className="text-sm text-red-500 mt-4">
-                    Please log in to comment.
-                  </p>
-                )}
-              </>
-            )}
+                ))}
+              </div>
+
+              {user ? (
+                <div className="mt-4 space-y-1">
+                  <input
+                    type="text"
+                    placeholder="Add a comment..."
+                    value={commentInputs[post.id] || ""}
+                    onChange={(e) =>
+                      setCommentInputs((prev) => ({
+                        ...prev,
+                        [post.id]: e.target.value,
+                      }))
+                    }
+                    className="w-full p-2 border rounded"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="block w-full max-w-xs text-sm"
+                    onChange={(e) =>
+                      setCommentImages((prev) => ({
+                        ...prev,
+                        [post.id]: e.target.files[0],
+                      }))
+                    }
+                  />
+                  <button
+                    onClick={() => handleNewComment(post.id)}
+                    className="mt-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Comment
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm text-red-500 mt-4">
+                  Please log in to comment.
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </main>
