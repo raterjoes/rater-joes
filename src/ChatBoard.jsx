@@ -9,7 +9,8 @@ import {
   doc,
   getDoc,
   deleteDoc,
-  getDocs
+  getDocs,
+  setDoc
 } from "firebase/firestore";
 import {
   ref,
@@ -48,6 +49,7 @@ export default function ChatBoard() {
   const [newPostText, setNewPostText] = useState("");
   const [newPostImage, setNewPostImage] = useState(null);
   const [comments, setComments] = useState({});
+  const [likes, setLikes] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [commentImages, setCommentImages] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
@@ -84,22 +86,26 @@ export default function ChatBoard() {
         })
       );
       setPosts(list);
+
+      // Expand all posts initially
       const initialExpanded = {};
       list.forEach((post) => {
         initialExpanded[post.id] = true;
       });
       setExpandedPosts(initialExpanded);
     });
+
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     posts.forEach((post) => {
-      const q = query(
+      const commentQuery = query(
         collection(db, "chat_posts", post.id, "comments"),
         orderBy("createdAt", "asc")
       );
-      onSnapshot(q, async (snapshot) => {
+
+      onSnapshot(commentQuery, async (snapshot) => {
         const commentList = await Promise.all(
           snapshot.docs.map(async (docSnap) => {
             const data = docSnap.data();
@@ -118,6 +124,15 @@ export default function ChatBoard() {
           })
         );
         setComments((prev) => ({ ...prev, [post.id]: commentList }));
+      });
+
+      // Listen for likes
+      const likesRef = collection(db, "chat_posts", post.id, "likes");
+      onSnapshot(likesRef, (snapshot) => {
+        setLikes((prev) => ({
+          ...prev,
+          [post.id]: snapshot.docs.map((doc) => doc.id)
+        }));
       });
     });
   }, [posts]);
@@ -167,6 +182,18 @@ export default function ChatBoard() {
 
     setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
     setCommentImages((prev) => ({ ...prev, [postId]: null }));
+  };
+
+  const toggleLike = async (postId) => {
+    if (!user) return;
+    const likeRef = doc(db, "chat_posts", postId, "likes", user.uid);
+    const userHasLiked = likes[postId]?.includes(user.uid);
+
+    if (userHasLiked) {
+      await deleteDoc(likeRef);
+    } else {
+      await setDoc(likeRef, { likedAt: serverTimestamp() });
+    }
   };
 
   const deletePost = async (postId, imageUrl) => {
@@ -266,9 +293,18 @@ export default function ChatBoard() {
                 className="w-full max-w-full sm:max-w-sm mb-2 rounded"
               />
             )}
-            <p className="text-xs text-gray-500 mb-1">
-              by {post.nickname} • {formatTimestamp(post.createdAt)}
-            </p>
+            <div className="flex justify-between items-center mb-1 text-xs text-gray-500">
+              <p>
+                by {post.nickname} • {formatTimestamp(post.createdAt)}
+              </p>
+              <button
+                onClick={() => toggleLike(post.id)}
+                className={`text-sm ${likes[post.id]?.includes(user?.uid) ? "text-blue-600 font-semibold" : ""}`}
+              >
+                👍 {likes[post.id]?.length || 0}
+              </button>
+            </div>
+
             {(isAdmin || user?.uid === post.userId) && (
               <button
                 onClick={() => deletePost(post.id, post.image)}
