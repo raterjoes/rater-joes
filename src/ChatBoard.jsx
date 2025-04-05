@@ -269,7 +269,7 @@ export default function ChatBoard() {
             <p className="text-xs text-gray-500 mb-1">
               by {post.nickname} • {formatTimestamp(post.createdAt)}
             </p>
-            {isAdmin && (
+            {(isAdmin || user?.uid === post.userId) && (
               <button
                 onClick={() => deletePost(post.id, post.image)}
                 className="text-red-500 text-sm mb-2 hover:underline"
@@ -305,7 +305,7 @@ export default function ChatBoard() {
                     )}
                     <p className="text-xs text-gray-500">
                       by {comment.nickname} • {formatTimestamp(comment.createdAt)}
-                      {isAdmin && (
+                      {(isAdmin || user?.uid === comment.userId) && (
                         <button
                           onClick={() =>
                             deleteComment(post.id, comment.id, comment.image)
