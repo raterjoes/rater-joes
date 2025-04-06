@@ -256,22 +256,24 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
           isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-4">
-          {products.map((product) => (
-            <ProductCard
-            key={product.id}
-            productId={product.id}
-            name={product.name}
-            image={product.image}
-            images={product.images}
-            description={product.description}
-            reviews={reviews[product.id] || []}
-            onReviewSubmit={onReviewSubmit}
-            user={user}
-            seasonal={product.seasonal}
-            season={product.season}
-            />
-          ))}
+        <div className="pt-4 max-h-[34rem] overflow-y-auto pr-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                productId={product.id}
+                name={product.name}
+                image={product.image}
+                images={product.images}
+                description={product.description}
+                reviews={reviews[product.id] || []}
+                onReviewSubmit={onReviewSubmit}
+                user={user}
+                seasonal={product.seasonal}
+                season={product.season}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
