@@ -46,11 +46,10 @@ export default function ChatBoard() {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [posts, setPosts] = useState([]);
-  const [comments, setComments] = useState({});
-  const [likes, setLikes] = useState({});
-  const [commentLikes, setCommentLikes] = useState({});
   const [newPostText, setNewPostText] = useState("");
   const [newPostImage, setNewPostImage] = useState(null);
+  const [comments, setComments] = useState({});
+  const [likes, setLikes] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [commentImages, setCommentImages] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
@@ -88,6 +87,7 @@ export default function ChatBoard() {
       );
       setPosts(list);
 
+      // Expand all posts initially
       const initialExpanded = {};
       list.forEach((post) => {
         initialExpanded[post.id] = true;
@@ -116,24 +116,6 @@ export default function ChatBoard() {
                 nickname = userDoc.data().nickname;
               }
             }
-
-            // Listen to likes on this comment
-            const commentLikesRef = collection(
-              db,
-              "chat_posts",
-              post.id,
-              "comments",
-              docSnap.id,
-              "likes"
-            );
-
-            onSnapshot(commentLikesRef, (likeSnap) => {
-              setCommentLikes((prev) => ({
-                ...prev,
-                [`${post.id}_${docSnap.id}`]: likeSnap.docs.map((doc) => doc.id),
-              }));
-            });
-
             return {
               id: docSnap.id,
               ...data,
@@ -144,6 +126,7 @@ export default function ChatBoard() {
         setComments((prev) => ({ ...prev, [post.id]: commentList }));
       });
 
+      // Listen for likes
       const likesRef = collection(db, "chat_posts", post.id, "likes");
       onSnapshot(likesRef, (snapshot) => {
         setLikes((prev) => ({
@@ -207,19 +190,6 @@ export default function ChatBoard() {
     const userHasLiked = likes[postId]?.includes(user.uid);
 
     if (userHasLiked) {
-      await deleteDoc(likeRef);
-    } else {
-      await setDoc(likeRef, { likedAt: serverTimestamp() });
-    }
-  };
-
-  const toggleCommentLike = async (postId, commentId) => {
-    if (!user) return;
-    const likeRef = doc(db, "chat_posts", postId, "comments", commentId, "likes", user.uid);
-    const likedKey = `${postId}_${commentId}`;
-    const alreadyLiked = commentLikes[likedKey]?.includes(user.uid);
-
-    if (alreadyLiked) {
       await deleteDoc(likeRef);
     } else {
       await setDoc(likeRef, { likedAt: serverTimestamp() });
@@ -359,46 +329,70 @@ export default function ChatBoard() {
               }`}
             >
               <div className="space-y-2 mt-2">
-                {(comments[post.id] || []).map((comment) => {
-                  const likedKey = `${post.id}_${comment.id}`;
-                  const likedByUser = commentLikes[likedKey]?.includes(user?.uid);
-                  const likeCount = commentLikes[likedKey]?.length || 0;
-
-                  return (
-                    <div key={comment.id} className="ml-4 p-2 bg-gray-50 border rounded">
-                      <p className="text-sm text-gray-800">{comment.text}</p>
-                      {comment.image && (
-                        <img
-                          src={comment.image}
-                          alt="Comment"
-                          className="mt-1 max-w-full sm:w-40 h-auto rounded"
-                        />
-                      )}
-                      <div className="flex justify-between items-center text-xs text-gray-500">
-                        <span>
-                          by {comment.nickname} • {formatTimestamp(comment.createdAt)}
-                          {(isAdmin || user?.uid === comment.userId) && (
-                            <button
-                              onClick={() =>
-                                deleteComment(post.id, comment.id, comment.image)
-                              }
-                              className="ml-2 text-red-500 hover:underline"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </span>
+                {(comments[post.id] || []).map((comment) => (
+                  <div key={comment.id} className="ml-4 p-2 bg-gray-50 border rounded">
+                    <p className="text-sm text-gray-800">{comment.text}</p>
+                    {comment.image && (
+                      <img
+                        src={comment.image}
+                        alt="Comment"
+                        className="mt-1 max-w-full sm:w-40 h-auto rounded"
+                      />
+                    )}
+                    <p className="text-xs text-gray-500">
+                      by {comment.nickname} • {formatTimestamp(comment.createdAt)}
+                      {(isAdmin || user?.uid === comment.userId) && (
                         <button
-                          onClick={() => toggleCommentLike(post.id, comment.id)}
-                          className={`ml-2 ${likedByUser ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+                          onClick={() =>
+                            deleteComment(post.id, comment.id, comment.image)
+                          }
+                          className="ml-2 text-red-500 hover:underline"
                         >
-                          👍 {likeCount}
+                          Delete
                         </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                      )}
+                    </p>
+                  </div>
+                ))}
               </div>
+
+              {user ? (
+                <div className="mt-4 space-y-1">
+                  <input
+                    type="text"
+                    placeholder="Add a comment..."
+                    value={commentInputs[post.id] || ""}
+                    onChange={(e) =>
+                      setCommentInputs((prev) => ({
+                        ...prev,
+                        [post.id]: e.target.value,
+                      }))
+                    }
+                    className="w-full p-2 border rounded"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="block w-full max-w-xs text-sm"
+                    onChange={(e) =>
+                      setCommentImages((prev) => ({
+                        ...prev,
+                        [post.id]: e.target.files[0],
+                      }))
+                    }
+                  />
+                  <button
+                    onClick={() => handleNewComment(post.id)}
+                    className="mt-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Comment
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm text-red-500 mt-4">
+                  Please log in to comment.
+                </p>
+              )}
             </div>
           </div>
         ))}
