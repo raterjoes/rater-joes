@@ -27,6 +27,7 @@ import "swiper/css/pagination";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
+import { Link } from "react-router-dom";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -299,8 +300,15 @@ export default function ProductPage() {
           {user ? (
             <ReviewForm onSubmit={handleReviewSubmit} productId={id} />
           ) : (
-            <p className="text-sm italic text-gray-600 mb-4">
-              Please log in to leave a review.
+            <p className="text-sm text-red-500 mt-4">
+              Please{" "}
+              <Link
+                to="/login"
+                className="text-red-600 underline hover:text-blue-800"
+              >
+                log in
+              </Link>{" "}
+              to comment.
             </p>
           )}
 
