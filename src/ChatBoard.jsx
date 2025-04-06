@@ -23,6 +23,7 @@ import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import chatboardImg from "./assets/chatboard2.jpg";
+import { Link } from "react-router-dom";
 
 function formatTimestamp(timestamp) {
   if (!timestamp) return "";
@@ -390,7 +391,14 @@ export default function ChatBoard() {
                 </div>
               ) : (
                 <p className="text-sm text-red-500 mt-4">
-                  Please log in to comment.
+                  Please{" "}
+                  <Link
+                    to="/login"
+                    className="text-red-600 underline hover:text-blue-800"
+                  >
+                    log in
+                  </Link>{" "}
+                  to comment.
                 </p>
               )}
             </div>
