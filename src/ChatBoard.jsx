@@ -253,7 +253,7 @@ export default function ChatBoard() {
           alt="Chat board header"
         />
 
-        {user && (
+        {user ? (
           <form onSubmit={handleNewPost} className="mb-6 space-y-2">
             <textarea
               value={newPostText}
@@ -282,6 +282,17 @@ export default function ChatBoard() {
               Post
             </button>
           </form>
+        ) : (
+          <p className="mb-6 text-red-500">
+            Please{" "}
+            <Link
+              to="/login"
+              className="text-red-600 underline hover:text-blue-800"
+            >
+              log in
+            </Link>{" "}
+            to post.
+          </p>
         )}
 
         {posts.map((post) => (
