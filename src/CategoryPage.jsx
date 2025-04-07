@@ -37,52 +37,57 @@ export default function CategoryPage() {
   return (
     <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
       <Navbar />
-      <main className="flex-grow max-w-6xl mx-auto px-4 py-6">
-        {validCategory ? (
-          <>
-            {assets.headerImage && (
-              <img
-                src={assets.headerImage}
-                alt={`${decodedCategory} banner`}
-                className="w-full h-48 object-cover rounded mb-6"
-              />
-            )}
 
-            <h1 className="text-3xl font-bold mb-6">{decodedCategory}</h1>
+      {/* ✅ Wrap everything inside a full-width container */}
+      <div className="flex-grow w-full">
+        <main className="w-full max-w-6xl mx-auto px-4 py-6">
+          {validCategory ? (
+            <>
+              {assets.headerImage && (
+                <img
+                  src={assets.headerImage}
+                  alt={`${decodedCategory} banner`}
+                  className="w-full aspect-[5/1] object-cover rounded mb-6"
+                />
+              )}
 
-            {products.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    productId={product.id}
-                    name={product.name}
-                    image={product.image}
-                    images={product.images}
-                    description={product.description}
-                    reviews={[]} // optional
-                    user={null}
-                    seasonal={product.seasonal}
-                    season={product.season}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p>No products found in this category.</p>
-            )}
+              <h1 className="text-3xl font-bold mb-6">{decodedCategory}</h1>
 
-            {assets.footerImage && (
-              <img
-                src={assets.footerImage}
-                alt={`${decodedCategory} footer`}
-                className="w-full h-48 object-cover rounded mt-8"
-              />
-            )}
-          </>
-        ) : (
-          <p className="text-red-600 text-lg">Invalid category.</p>
-        )}
-      </main>
+              {products.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      productId={product.id}
+                      name={product.name}
+                      image={product.image}
+                      images={product.images}
+                      description={product.description}
+                      reviews={[]} // optional
+                      user={null}
+                      seasonal={product.seasonal}
+                      season={product.season}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p>No products found in this category.</p>
+              )}
+
+              {assets.footerImage && (
+                <img
+                  src={assets.footerImage}
+                  alt={`${decodedCategory} footer`}
+                  className="w-full aspect-[5/1] object-cover rounded mt-8"
+                />
+              )}
+            </>
+          ) : (
+            <p className="text-red-600 text-lg">Invalid category.</p>
+          )}
+        </main>
+      </div>
+
       <Footer />
     </div>
   );

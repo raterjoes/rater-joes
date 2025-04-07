@@ -98,6 +98,9 @@ export default function Navbar() {
             <Link to="/seasonal" className="hover:underline">
               Seasonal
             </Link>
+            <Link to="/categories" className="hover:underline">
+              Categories
+            </Link>
             {!user && (
               <Link to="/login" className="hover:underline">
                 Log In
@@ -166,6 +169,9 @@ export default function Navbar() {
         </Link>
         <Link to="/seasonal" className="block hover:underline">
           Seasonal
+        </Link>
+        <Link to="/categories" className="block hover:underline">
+          Categories
         </Link>
         {user && (
           <button
