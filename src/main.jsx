@@ -12,6 +12,7 @@ import PendingProducts from './PendingProducts.jsx';
 import ChatBoard from './ChatBoard.jsx'
 import Seasonal from './Seasonal.jsx';
 import PendingReviewImages from './PendingReviewImages.jsx';
+import CategoryPage from "./CategoryPage";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/chat" element={<ChatBoard />} />
           <Route path="/seasonal" element={<Seasonal />} />
           <Route path="/pending-review-images" element={<PendingReviewImages />} />
+          <Route path="/category/:categoryName" element={<CategoryPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -22,6 +22,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Contact from "./Contact";
 import groceriesImage from "./assets/groceries.jpg";
+import ProductCard from "./ProductCard";
 
 export default function App() {
   const { user } = useAuth();
@@ -242,7 +243,15 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
         className="flex justify-between items-center cursor-pointer mb-2"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h2 className="text-2xl font-semibold">{title}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-semibold">{title}</h2>
+          <Link
+            to={`/category/${encodeURIComponent(title)}`}
+            className="px-2 py-0.5 text-s rounded bg-rose-800 text-white hover:bg-rose-900"
+          >
+            View All
+          </Link>
+        </div>
         <ChevronDown
           className={`w-5 h-5 text-gray-600 transition-transform duration-300 ${
             isOpen ? "rotate-180" : "rotate-0"
@@ -277,66 +286,5 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
         </div>
       </div>
     </section>
-  );
-}
-
-// ⬇️ Product Card
-function ProductCard({
-  name,
-  image,
-  images,
-  description,
-  productId,
-  reviews,
-  seasonal,
-  season,
-}) {
-  const averageRating = reviews.length
-    ? (
-        reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-      ).toFixed(1)
-    : null;
-
-  const displayImage = images?.length ? images[0] : image;
-
-  const seasonStyles = {
-    Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },
-    Spring: { emoji: "🌱", bg: "bg-green-100", text: "text-green-700" },
-    Summer: { emoji: "☀️", bg: "bg-yellow-100", text: "text-yellow-700" },
-    Fall:   { emoji: "🍂", bg: "bg-orange-100", text: "text-orange-700" },
-  };
-
-  const style = seasonStyles[season] || {};
-
-  return (
-    <Link
-      to={`/products/${productId}`}
-      className="relative block bg-white rounded-lg shadow p-2 hover:shadow-lg transition text-sm"
-    >
-      {seasonal && season && (
-        <span
-          className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${style.bg} ${style.text}`}
-        >
-          {style.emoji} Limited time: {season}
-        </span>
-      )}
-
-      <img
-        src={displayImage}
-        alt={name}
-        className="w-full h-36 object-cover rounded mb-2"
-      />
-      <h3 className="text-lg font-bold">{name}</h3>
-
-      {averageRating ? (
-        <div className="text-yellow-500 text-sm mb-2">
-          {"⭐".repeat(Math.round(averageRating))} ({averageRating})
-        </div>
-      ) : (
-        <div className="text-gray-400 text-sm mb-2">Not yet rated</div>
-      )}
-
-      <p className="text-sm text-gray-700">{description}</p>
-    </Link>
   );
 }
