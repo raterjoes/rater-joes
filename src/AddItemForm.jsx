@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import {
   collection,
   addDoc,
@@ -17,9 +17,13 @@ import Footer from "./Footer";
 export default function AddItemForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const prefillCategory = searchParams.get("category");
+  const isValidPrefill = categories.includes(prefillCategory);
+  const [category, setCategory] = useState(isValidPrefill ? prefillCategory : categories[0]);
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState(categories[0]);
   const [imageInputs, setImageInputs] = useState([null]);
   const [description, setDescription] = useState("");
   const [isSeasonal, setIsSeasonal] = useState(false);
@@ -152,7 +156,7 @@ export default function AddItemForm() {
               onClick={() => {
                 setSubmitted(false);
                 setName("");
-                setCategory(categories[0]);
+                setCategory(isValidPrefill ? prefillCategory : categories[0]);
                 setImageInputs([null]);
                 setDescription("");
                 setIsSeasonal(false);
@@ -164,7 +168,6 @@ export default function AddItemForm() {
             >
               + Add Another Item
             </button>
-
           </div>
         ) : (
           <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded">

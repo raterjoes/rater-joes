@@ -1,3 +1,3 @@
-const categories = ["Produce", "Desserts", "Seasonings", "Snacks", "Ready-to-eat", "Cheeses", "Bakery", "Dairy", "Frozen Foods", "Sauces, Dips, and Spreads", "Drinks", "Deli", "Meat", "Baking Goods", "Wines and Spirits", "Other"];
+const categories = ["Produce", "Desserts", "Seasonings", "Frozen Foods", "Snacks", "Ready-to-eat", "Dairy", "Cheeses", "Bakery", "Drinks", "Sauces, Dips, and Spreads", "Deli", "Meat and Seafood", "Pantry", "Wines and Liquors", "Plants and Flowers", "Other"];
 
 export default categories;

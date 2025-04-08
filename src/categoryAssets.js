@@ -23,6 +23,21 @@ import cheesesThumb from "./assets/category-banners/cheeses-thumb.jpg"
 import bakeryHeader from "./assets/category-banners/bakery-header.jpg"
 import bakeryFooter from "./assets/category-banners/bakery-footer.jpg"
 import bakeryThumb from "./assets/category-banners/bakery-thumb.jpg"
+import dairyHeader from "./assets/category-banners/dairy-header.jpg"
+import dairyFooter from "./assets/category-banners/dairy-footer.jpg"
+import dairyThumb from "./assets/category-banners/dairy-thumb.jpg"
+import saucesdipsandspreadsHeader from "./assets/category-banners/saucesdipsandspreads-header.jpg"
+import saucesdipsandspreadsFooter from "./assets/category-banners/saucesdipsandspreads-footer.jpg"
+import saucesdipsandspreadsThumb from "./assets/category-banners/saucesdipsandspreads-thumb.jpg"
+import drinksHeader from "./assets/category-banners/drinks-header.jpg"
+import drinksFooter from "./assets/category-banners/drinks-footer.jpg"
+import drinksThumb from "./assets/category-banners/drinks-thumb.jpg"
+import deliHeader from "./assets/category-banners/deli-header.jpg"
+import deliFooter from  "./assets/category-banners/deli-footer.jpg"
+import deliThumb from "./assets/category-banners/deli-thumb.jpg"
+import pantryHeader from "./assets/category-banners/pantry-header.jpg"
+import pantryFooter from "./assets/category-banners/pantry-footer.jpg"
+import pantryThumb from "./assets/category-banners/pantry-thumb.jpg"
 
 const categoryAssets = {
   "Produce": {
@@ -64,6 +79,31 @@ const categoryAssets = {
     headerImage: bakeryHeader,
     footerImage: bakeryFooter,
     thumbnailImage: bakeryThumb,
+  },
+  "Dairy": {
+    headerImage: dairyHeader,
+    footerImage: dairyFooter,
+    thumbnailImage: dairyThumb,
+  },
+  "Sauces, Dips, and Spreads": {
+    headerImage: saucesdipsandspreadsHeader,
+    footerImage: saucesdipsandspreadsFooter,
+    thumbnailImage: saucesdipsandspreadsThumb,
+  },
+  "Drinks": {
+    headerImage: drinksHeader,
+    footerImage: drinksFooter,
+    thumbnailImage: drinksThumb,
+  },
+  "Deli": {
+    headerImage: deliHeader,
+    footerImage: deliFooter,
+    thumbnailImage: deliThumb,
+  },
+  "Pantry": {
+    headerImage: pantryHeader,
+    footerImage: pantryFooter,
+    thumbnailImage: pantryThumb,
   }
   // ...add more
 };
