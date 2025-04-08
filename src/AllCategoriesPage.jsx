@@ -14,7 +14,7 @@ export default function AllCategoriesPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {categories.map((category) => {
             const assets = categoryAssets[category] || {};
-            const image = assets.headerImage;
+            const image = assets.thumbnailImage || assets.headerImage;
 
             return (
               <Link
