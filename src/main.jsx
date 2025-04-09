@@ -16,6 +16,7 @@ import CategoryPage from "./CategoryPage";
 import AllCategoriesPage from "./AllCategoriesPage";
 import SubmitRecipePage from "./SubmitRecipePage";
 import RecipesPage from "./RecipesPage";
+import PendingRecipes from "./PendingRecipes";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -35,6 +36,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/categories" element={<AllCategoriesPage />} />
           <Route path="/submit-recipe" element={<SubmitRecipePage />} />
           <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/pending-recipes" element={<PendingRecipes />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

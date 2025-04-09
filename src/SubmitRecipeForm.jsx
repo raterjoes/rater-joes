@@ -16,7 +16,7 @@ export default function SubmitRecipeForm() {
   const [steps, setSteps] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [products, setProducts] = useState([]);
-  const [image, setImage] = useState(null);
+  const [imageInputs, setImageInputs] = useState([null]);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -31,33 +31,62 @@ export default function SubmitRecipeForm() {
     fetchProducts();
   }, []);
 
+  const handleImageChange = (index, file) => {
+    const updated = [...imageInputs];
+    updated[index] = file;
+    setImageInputs(updated);
+  
+    if (updated.every((f) => f !== null)) {
+      setImageInputs([...updated, null]);
+    }
+  };
+  
+  const handleRemoveImage = (index) => {
+    const updated = [...imageInputs];
+    updated.splice(index, 1);
+  
+    if (updated.length === 0 || updated.every((f) => f !== null)) {
+      updated.push(null);
+    }
+  
+    setImageInputs(updated);
+  };  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user || !title || !steps) return;
 
-    let imageUrl = "";
-    if (image) {
-      const storageRef = ref(storage, `recipe-images/${Date.now()}-${image.name}`);
-      await uploadBytes(storageRef, image);
-      imageUrl = await getDownloadURL(storageRef);
-    }
+    const imageUrls = [];
+
+    const uploadPromises = imageInputs
+    .filter(Boolean)
+    .map(async (file) => {
+        const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+        const imageRef = ref(storage, `recipe-images/${uniqueSuffix}-${file.name}`);
+        await uploadBytes(imageRef, file);
+        const url = await getDownloadURL(imageRef);
+        imageUrls.push(url);
+    });
+
+    await Promise.all(uploadPromises);
 
     await addDoc(collection(db, "recipes"), {
-      title,
-      description,
-      steps,
-      productIds: selectedProducts,
-      imageUrl,
-      createdAt: serverTimestamp(),
-      userId: user.uid,
-    });
+        title,
+        description,
+        steps,
+        productIds: selectedProducts,
+        images: imageUrls,
+        createdAt: serverTimestamp(),
+        userId: user.uid,
+        approved: false,
+      });      
 
     // Reset form
     setTitle("");
     setDescription("");
     setSteps("");
     setSelectedProducts([]);
-    setImage(null);
+    setImageInputs([null]);
     alert("Recipe submitted!");
   };
 
@@ -161,21 +190,45 @@ export default function SubmitRecipeForm() {
         )}
         </div>
 
-      <div>
-        <p className="font-semibold">Upload a photo:</p>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImage(e.target.files[0])}
-        />
-        {image && (
-          <img
-            src={URL.createObjectURL(image)}
-            alt="preview"
-            className="w-32 h-32 object-cover mt-2 rounded border"
-          />
-        )}
-      </div>
+    <div>
+        <p className="font-semibold">Upload image(s):</p>
+        {imageInputs.map((file, index) => {
+            const isNextEmptyInput =
+            index > 0 && imageInputs[index] === null && imageInputs[index - 1] !== null;
+
+            return (
+            <div key={index} className="relative mt-2">
+                {isNextEmptyInput && (
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                    Add another image?
+                </p>
+                )}
+                <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageChange(index, e.target.files[0])}
+                className="w-full p-2 border rounded"
+                />
+                {file && (
+                <div className="relative inline-block mt-2">
+                    <img
+                    src={URL.createObjectURL(file)}
+                    alt={`Preview ${index + 1}`}
+                    className="w-24 h-24 object-cover rounded border"
+                    />
+                    <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                    ✖
+                    </button>
+                </div>
+                )}
+            </div>
+            );
+        })}
+    </div>
 
       <button
         type="submit"

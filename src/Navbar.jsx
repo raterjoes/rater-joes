@@ -87,6 +87,9 @@ export default function Navbar() {
                 <Link to="/pending-review-images" className="hover:underline">
                   Pending Review Images
                 </Link>
+                <Link to="/pending-recipes" className="hover:underline">
+                  Pending Recipes
+                </Link>
               </>
             )}
             <Link to="/contact" className="hover:underline">
@@ -161,6 +164,9 @@ export default function Navbar() {
             </Link>
             <Link to="/pending-review-images" className="block hover:underline">
               Pending Review Images
+            </Link>
+            <Link to="/pending-recipes" className="hover:underline">
+              Pending Recipes
             </Link>
           </>
         )}
