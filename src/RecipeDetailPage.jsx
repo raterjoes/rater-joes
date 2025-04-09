@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -8,16 +8,27 @@ import Footer from "./Footer";
 export default function RecipeDetailPage() {
   const { id } = useParams();
   const [recipe, setRecipe] = useState(null);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    const fetchRecipe = async () => {
+    const fetchData = async () => {
+      // Fetch recipe
       const docRef = doc(db, "recipes", id);
       const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
         setRecipe(snapshot.data());
       }
+
+      // Fetch products
+      const productSnap = await getDocs(collection(db, "products"));
+      const productList = productSnap.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().name,
+      }));
+      setProducts(productList);
     };
-    fetchRecipe();
+
+    fetchData();
   }, [id]);
 
   if (!recipe) {
@@ -66,13 +77,16 @@ export default function RecipeDetailPage() {
           <div>
             <h2 className="text-xl font-semibold mb-1">Tagged Products</h2>
             <ul className="list-disc list-inside text-blue-600">
-              {recipe.productIds.map((id) => (
-                <li key={id}>
-                  <Link to={`/products/${id}`} className="hover:underline">
-                    View Product
-                  </Link>
-                </li>
-              ))}
+              {recipe.productIds.map((id) => {
+                const product = products.find((p) => p.id === id);
+                return (
+                  <li key={id}>
+                    <Link to={`/products/${id}`} className="hover:underline">
+                      {product?.name || "View Product"}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

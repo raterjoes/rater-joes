@@ -7,21 +7,33 @@ import Footer from "./Footer";
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState([]);
+  const [products, setProducts] = useState([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
-    const fetchRecipes = async () => {
-      const q = query(collection(db, "recipes"), where("approved", "==", true));
-      const snapshot = await getDocs(q);
-      const list = snapshot.docs.map((doc) => ({
+    const fetchData = async () => {
+      // Fetch products
+      const productSnap = await getDocs(collection(db, "products"));
+      const productList = productSnap.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().name,
+      }));
+      setProducts(productList);
+
+      // Fetch approved recipes
+      const recipeSnap = await getDocs(
+        query(collection(db, "recipes"), where("approved", "==", true))
+      );
+      const recipeList = recipeSnap.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setRecipes(list);
+      setRecipes(recipeList);
     };
-    fetchRecipes();
+
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -86,17 +98,20 @@ export default function RecipesPage() {
                   <div className="text-sm text-gray-600 mt-2">
                     <span className="font-medium">Tagged Products:</span>
                     <ul className="list-disc list-inside">
-                      {recipe.productIds.map((id) => (
-                        <li key={id}>
-                          <Link
-                            to={`/products/${id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-blue-600 hover:underline"
-                          >
-                            View Product
-                          </Link>
-                        </li>
-                      ))}
+                      {recipe.productIds.map((id) => {
+                        const product = products.find((p) => p.id === id);
+                        return (
+                          <li key={id}>
+                            <Link
+                              to={`/products/${id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-blue-600 hover:underline"
+                            >
+                              {product?.name || "View Product"}
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
