@@ -10,6 +10,7 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import Navbar from "./Navbar";
@@ -23,17 +24,16 @@ export default function RecipeDetailPage() {
   const [products, setProducts] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch recipe
       const docRef = doc(db, "recipes", id);
       const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
         setRecipe(snapshot.data());
       }
 
-      // Fetch products
       const productSnap = await getDocs(collection(db, "products"));
       const productList = productSnap.docs.map((doc) => ({
         id: doc.id,
@@ -64,10 +64,21 @@ export default function RecipeDetailPage() {
     return () => unsubscribe();
   }, [id]);
 
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (user) {
+        const snapshot = await getDocs(collection(db, "admins"));
+        const emails = snapshot.docs.map((doc) => doc.data().email);
+        setIsAdmin(emails.includes(user.email));
+      }
+    };
+    checkAdmin();
+  }, [user]);
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim() || !user) return;
-  
+
     let nickname = null;
     try {
       const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -77,7 +88,7 @@ export default function RecipeDetailPage() {
     } catch (err) {
       console.error("Failed to fetch nickname:", err);
     }
-  
+
     await addDoc(collection(db, "recipes", id, "comments"), {
       text: commentText.trim(),
       createdAt: serverTimestamp(),
@@ -85,9 +96,19 @@ export default function RecipeDetailPage() {
       userEmail: user.email,
       nickname,
     });
-  
+
     setCommentText("");
-  };  
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+    try {
+      await deleteDoc(doc(db, "recipes", id, "comments", commentId));
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+      alert("Failed to delete comment.");
+    }
+  };
 
   if (!recipe) {
     return (
@@ -104,7 +125,7 @@ export default function RecipeDetailPage() {
   return (
     <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
       <Navbar />
-      <main className="flex-grow max-w-3xl mx-auto px-4 py-10 space-y-6">
+      <main className="flex-grow w-full max-w-3xl sm:max-w-3xl md:max-w-4xl lg:max-w-4xl mx-auto px-6 py-10 space-y-8">
         <h1 className="text-3xl font-bold">{recipe.title}</h1>
 
         {recipe.images?.length > 0 && (
@@ -163,12 +184,20 @@ export default function RecipeDetailPage() {
             {comments.map((comment) => (
               <li
                 key={comment.id}
-                className="bg-white p-3 rounded shadow text-sm"
+                className="bg-white p-3 rounded shadow text-sm relative"
               >
                 <p className="text-gray-800">{comment.text}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                    — {comment.nickname || "Anonymous"}
+                  — {comment.nickname || "Anonymous"}
                 </p>
+                {(user?.uid === comment.userId || isAdmin) && (
+                  <button
+                    onClick={() => handleDeleteComment(comment.id)}
+                    className="absolute top-2 right-2 text-red-500 text-xs hover:underline"
+                  >
+                    Delete
+                  </button>
+                )}
               </li>
             ))}
           </ul>

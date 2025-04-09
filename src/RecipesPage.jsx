@@ -11,10 +11,10 @@ export default function RecipesPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch products
       const productSnap = await getDocs(collection(db, "products"));
       const productList = productSnap.docs.map((doc) => ({
         id: doc.id,
@@ -22,7 +22,6 @@ export default function RecipesPage() {
       }));
       setProducts(productList);
 
-      // Fetch approved recipes
       const recipeSnap = await getDocs(
         query(collection(db, "recipes"), where("approved", "==", true))
       );
@@ -46,6 +45,20 @@ export default function RecipesPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const filteredRecipes = recipes.filter((recipe) => {
+    const lowerQuery = searchQuery.toLowerCase();
+    const titleMatch = recipe.title.toLowerCase().includes(lowerQuery);
+
+    const taggedProductNames = recipe.productIds
+      ?.map((id) => products.find((p) => p.id === id)?.name || "")
+      .join(" ")
+      .toLowerCase();
+
+    const productMatch = taggedProductNames.includes(lowerQuery);
+
+    return titleMatch || productMatch;
+  });
+
   return (
     <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
       <Navbar />
@@ -60,11 +73,22 @@ export default function RecipesPage() {
           </Link>
         </div>
 
-        {recipes.length === 0 ? (
-          <p>No recipes yet. Be the first to submit one!</p>
+        {/* Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by recipe name or product..."
+            className="w-full sm:w-[34rem] p-2 border border-gray-300 rounded shadow-sm"
+          />
+        </div>
+
+        {filteredRecipes.length === 0 ? (
+          <p>No recipes match your search.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recipes.map((recipe) => (
+            {filteredRecipes.map((recipe) => (
               <Link
                 to={`/recipes/${recipe.id}`}
                 key={recipe.id}

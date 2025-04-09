@@ -134,11 +134,12 @@ export default function SubmitRecipeForm() {
         {/* Search input */}
         <input
             type="text"
-            placeholder="Type to search products..."
+            value={searchQuery} // <-- add this line
             onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Type to search products..."
             className="w-full p-2 border rounded"
         />
-
+    
         {/* Filtered options */}
         {searchQuery && (
             <ul className="bg-white border rounded shadow max-h-40 overflow-y-auto">
