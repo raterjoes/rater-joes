@@ -53,7 +53,11 @@ export default function RecipesPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {recipes.map((recipe) => (
-              <div key={recipe.id} className="bg-white rounded shadow p-4">
+              <Link
+                to={`/recipes/${recipe.id}`}
+                key={recipe.id}
+                className="bg-white rounded shadow p-4 block hover:shadow-lg transition"
+              >
                 {recipe.images?.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto mb-3">
                     {recipe.images.map((url, index) => (
@@ -62,7 +66,8 @@ export default function RecipesPage() {
                         src={url}
                         alt={`${recipe.title} ${index + 1}`}
                         className="w-40 h-32 object-cover rounded cursor-pointer hover:opacity-90"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault(); // prevent link from navigating
                           setLightboxImages(recipe.images);
                           setLightboxIndex(index);
                           setLightboxOpen(true);
@@ -85,6 +90,7 @@ export default function RecipesPage() {
                         <li key={id}>
                           <Link
                             to={`/products/${id}`}
+                            onClick={(e) => e.stopPropagation()}
                             className="text-blue-600 hover:underline"
                           >
                             View Product
@@ -94,7 +100,7 @@ export default function RecipesPage() {
                     </ul>
                   </div>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         )}
