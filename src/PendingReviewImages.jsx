@@ -13,6 +13,8 @@ import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { storage } from "./firebase";
+import { ref as storageRef, deleteObject } from "firebase/storage";
 
 export default function PendingReviewImages() {
   const { user } = useAuth();
@@ -84,8 +86,25 @@ export default function PendingReviewImages() {
 
   const deleteImage = async (ref) => {
     if (confirm("Are you sure you want to delete this image?")) {
-      await deleteDoc(ref);
-      setPendingImages((prev) => prev.filter((img) => img.ref.id !== ref.id));
+      try {
+        // Step 1: Delete from storage
+        const docSnap = await getDoc(ref);
+        const { url } = docSnap.data() || {};
+        if (url) {
+          const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+          const fileRef = storageRef(storage, path);
+          await deleteObject(fileRef);
+        }
+  
+        // Step 2: Delete Firestore doc
+        await deleteDoc(ref);
+  
+        // Step 3: Update UI
+        setPendingImages((prev) => prev.filter((img) => img.ref.id !== ref.id));
+      } catch (err) {
+        console.error("❌ Failed to delete image:", err);
+        alert("Failed to delete image.");
+      }
     }
   };
 
