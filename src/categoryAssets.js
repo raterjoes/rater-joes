@@ -38,6 +38,12 @@ import deliThumb from "./assets/category-banners/deli-thumb.jpg"
 import pantryHeader from "./assets/category-banners/pantry-header.jpg"
 import pantryFooter from "./assets/category-banners/pantry-footer.jpg"
 import pantryThumb from "./assets/category-banners/pantry-thumb.jpg"
+import meatandseafoodHeader from "./assets/category-banners/meatandseafood-header.jpg"
+import meatandseafoodFooter from "./assets/category-banners/meatandseafood-footer.jpg"
+import meatandseafoodThumb from "./assets/category-banners/meatandseafood-thumb.jpg"
+import winesandliquorsHeader from "./assets/category-banners/winesandliquors-header.jpg"
+import winesandliquorsFooter from "./assets/category-banners/winesandliquors-footer.jpg"
+import winesandliquorsThumb from "./assets/category-banners/winesandliquors-thumb.jpg"
 
 const categoryAssets = {
   "Produce": {
@@ -104,6 +110,16 @@ const categoryAssets = {
     headerImage: pantryHeader,
     footerImage: pantryFooter,
     thumbnailImage: pantryThumb,
+  },
+  "Meat and Seafood": {
+    headerImage: meatandseafoodHeader,
+    footerImage: meatandseafoodFooter,
+    thumbnailImage: meatandseafoodThumb,
+  },
+  "Wines and Liquors": {
+    headerImage: winesandliquorsHeader,
+    footerImage: winesandliquorsFooter,
+    thumbnailImage: winesandliquorsThumb,
   }
   // ...add more
 };
