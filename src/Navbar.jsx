@@ -101,6 +101,9 @@ export default function Navbar() {
             <Link to="/categories" className="hover:underline">
               Categories
             </Link>
+            <Link to="/recipes" className="hover:underline">
+              Recipes
+            </Link>
             {!user && (
               <Link to="/login" className="hover:underline">
                 Log In
@@ -172,6 +175,9 @@ export default function Navbar() {
         </Link>
         <Link to="/categories" className="block hover:underline">
           Categories
+        </Link>
+        <Link to="/recipes" className="block hover:underline">
+          Recipes
         </Link>
         {user && (
           <button

@@ -14,6 +14,8 @@ import Seasonal from './Seasonal.jsx';
 import PendingReviewImages from './PendingReviewImages.jsx';
 import CategoryPage from "./CategoryPage";
 import AllCategoriesPage from "./AllCategoriesPage";
+import SubmitRecipePage from "./SubmitRecipePage";
+import RecipesPage from "./RecipesPage";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -31,6 +33,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/pending-review-images" element={<PendingReviewImages />} />
           <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/categories" element={<AllCategoriesPage />} />
+          <Route path="/submit-recipe" element={<SubmitRecipePage />} />
+          <Route path="/recipes" element={<RecipesPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
