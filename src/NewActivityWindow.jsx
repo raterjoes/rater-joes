@@ -59,20 +59,32 @@ export default function NewActivityWindow() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-[90vw] sm:w-[360px] text-sm font-sans drop-shadow-lg">
-      {/* On mobile: small button when minimized */}
-      {minimized && window.innerWidth < 640 ? (
-        <button
-          onClick={() => setMinimized(false)}
-          className="bg-rose-100 text-rose-800 border border-rose-800 px-5 py-2 text-sm font-semibold rounded-full shadow-sm hover:bg-rose-50 transition"
-        >
-          New Activity
-        </button>
+      {minimized ? (
+        window.innerWidth < 640 ? (
+          // 🔹 On mobile: small floating button
+          <button
+            onClick={() => setMinimized(false)}
+            className="bg-rose-100 text-rose-800 border border-rose-800 px-5 py-2 text-sm font-semibold rounded-full shadow-sm hover:bg-rose-50 transition"
+          >
+            New Activity
+          </button>
+        ) : (
+          // 🔹 On desktop: minimized bar with "Expand"
+          <button
+                onClick={() => setMinimized(false)}
+                className="w-full text-left bg-white border border-gray-300 rounded-lg overflow-hidden shadow-xl hover:bg-rose-50 transition"
+                >
+                <div className="flex justify-between items-center px-4 py-2 bg-rose-100 border-b border-rose-200">
+                    <h3 className="text-base font-semibold text-rose-800">📝 Live Activity</h3>
+                    <span className="text-xs text-rose-700 underline">Expand</span>
+                </div>
+         </button>
+        )
       ) : (
+        // 🔹 Fully expanded version
         <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-xl">
           <div className="flex justify-between items-center px-4 py-2 bg-rose-100 border-b border-rose-200">
-            <h3 className="text-base font-semibold text-rose-800 flex items-center gap-2">
-                📝 Live Activity
-            </h3>
+            <h3 className="text-base font-semibold text-rose-800">📝 Live Activity</h3>
             <button
               onClick={() => setMinimized(true)}
               className="text-xs text-rose-700 hover:underline transition"
@@ -81,23 +93,21 @@ export default function NewActivityWindow() {
             </button>
           </div>
   
-          {!minimized && (
-            <ul className="max-h-72 overflow-y-auto text-gray-800 text-sm divide-y divide-gray-200">
-              {combined.map((item) => (
-                <li
-                  key={item.id}
-                  onClick={() => handleClick(item)}
-                  className="px-4 py-2 hover:bg-gray-50 transition cursor-pointer"
-                >
-                  {item.type === "post" ? (
-                    <span>💬 New post: {item.text.slice(0, 60)}...</span>
-                  ) : (
-                    <span>🍽️ New recipe: {item.title}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="max-h-72 overflow-y-auto text-gray-800 text-sm divide-y divide-gray-200">
+            {combined.map((item) => (
+              <li
+                key={item.id}
+                onClick={() => handleClick(item)}
+                className="px-4 py-2 hover:bg-gray-50 transition cursor-pointer"
+              >
+                {item.type === "post" ? (
+                  <span>💬 New post: {item.text.slice(0, 60)}...</span>
+                ) : (
+                  <span>🍽️ New recipe: {item.title}</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

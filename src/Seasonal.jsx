@@ -50,7 +50,7 @@ export default function Seasonal() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-orange-50">
       <Navbar />
       <main className="flex-grow max-w-5xl mx-auto px-4 py-10">
 

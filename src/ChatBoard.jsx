@@ -24,6 +24,9 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import chatboardImg from "./assets/chatboard2.jpg";
 import { Link, useSearchParams } from "react-router-dom";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
 
 function formatTimestamp(timestamp) {
   if (!timestamp) return "";
@@ -48,7 +51,7 @@ export default function ChatBoard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [posts, setPosts] = useState([]);
   const [newPostText, setNewPostText] = useState("");
-  const [newPostImage, setNewPostImage] = useState(null);
+  const [newPostImages, setNewPostImages] = useState([null]);
   const [comments, setComments] = useState({});
   const [likes, setLikes] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
@@ -57,6 +60,9 @@ export default function ChatBoard() {
   const [highlightedPostId, setHighlightedPostId] = useState(null);
   const [searchParams] = useSearchParams();
   const postRefs = useRef({});
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     const param = searchParams.get("post");
@@ -168,26 +174,32 @@ export default function ChatBoard() {
 
   const handleNewPost = async (e) => {
     e.preventDefault();
-    if (!newPostText.trim() && !newPostImage) return;
-
-    let imageUrl = "";
-    if (newPostImage) {
-      const imageRef = ref(storage, `chat-images/${Date.now()}-${newPostImage.name}`);
-      await uploadBytes(imageRef, newPostImage);
-      imageUrl = await getDownloadURL(imageRef);
-    }
-
+    if (!newPostText.trim() && newPostImages.every((img) => !img)) return;
+  
+    const imageUrls = [];
+  
+    const uploadPromises = newPostImages
+      .filter(Boolean)
+      .map(async (file) => {
+        const imageRef = ref(storage, `chat-images/${Date.now()}-${file.name}`);
+        await uploadBytes(imageRef, file);
+        const url = await getDownloadURL(imageRef);
+        imageUrls.push(url);
+      });
+  
+    await Promise.all(uploadPromises);
+  
     await addDoc(collection(db, "chat_posts"), {
       text: newPostText,
-      image: imageUrl,
+      images: imageUrls,
       createdAt: serverTimestamp(),
       userEmail: user.email,
       userId: user.uid,
     });
-
+  
     setNewPostText("");
-    setNewPostImage(null);
-  };
+    setNewPostImages([null]);
+  };  
 
   const handleNewComment = async (postId) => {
     const text = commentInputs[postId];
@@ -225,8 +237,9 @@ export default function ChatBoard() {
     }
   };
 
-  const deletePost = async (postId, imageUrl) => {
+  const deletePost = async (postId, imageUrls = []) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
+  
     try {
       const commentsSnapshot = await getDocs(collection(db, "chat_posts", postId, "comments"));
       for (const docSnap of commentsSnapshot.docs) {
@@ -237,18 +250,21 @@ export default function ChatBoard() {
         }
         await deleteDoc(docSnap.ref);
       }
-
-      if (imageUrl) {
-        const imageRef = ref(storage, imageUrl);
-        await deleteObject(imageRef).catch(() => {});
+  
+      // 🔁 Delete all images in the post
+      if (Array.isArray(imageUrls)) {
+        for (const url of imageUrls) {
+          const imageRef = ref(storage, url);
+          await deleteObject(imageRef).catch(() => {});
+        }
       }
-
+  
       await deleteDoc(doc(db, "chat_posts", postId));
     } catch (err) {
       console.error("Error deleting post:", err);
       alert("Failed to delete post.");
     }
-  };
+  };  
 
   const deleteComment = async (postId, commentId, imageUrl) => {
     if (!window.confirm("Are you sure you want to delete this comment?")) return;
@@ -271,6 +287,27 @@ export default function ChatBoard() {
     }));
   };
 
+  const handlePostImageChange = (index, file) => {
+    const updated = [...newPostImages];
+    updated[index] = file;
+    setNewPostImages(updated);
+  
+    if (updated.every((f) => f !== null)) {
+      setNewPostImages([...updated, null]);
+    }
+  };
+  
+  const handleRemovePostImage = (index) => {
+    const updated = [...newPostImages];
+    updated.splice(index, 1);
+  
+    if (updated.length === 0 || updated.every((f) => f !== null)) {
+      updated.push(null);
+    }
+  
+    setNewPostImages(updated);
+  };  
+
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden bg-gray-50">
       <Navbar />
@@ -290,19 +327,42 @@ export default function ChatBoard() {
               className="w-full p-2 border rounded"
               rows={3}
             />
-            <input
-              type="file"
-              accept="image/*"
-              className="block w-full max-w-xs text-sm"
-              onChange={(e) => setNewPostImage(e.target.files[0])}
-            />
-            {newPostImage && (
-              <img
-                src={URL.createObjectURL(newPostImage)}
-                alt="preview"
-                className="w-32 h-32 object-cover rounded border"
-              />
-            )}
+            {newPostImages.map((file, index) => {
+              const isNextEmptyInput =
+                index > 0 && newPostImages[index] === null && newPostImages[index - 1] !== null;
+
+              return (
+                <div key={index} className="relative mt-2">
+                  {isNextEmptyInput && (
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Add another image?
+                    </p>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePostImageChange(index, e.target.files[0])}
+                    className="w-full max-w-xs p-2 border rounded text-sm"
+                  />
+                  {file && (
+                    <div className="relative inline-block mt-2">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePostImage(index)}
+                        className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      >
+                        ✖
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             <button
               type="submit"
               className="px-4 py-2 bg-rose-800/80 text-white rounded hover:bg-blue-700"
@@ -333,13 +393,20 @@ export default function ChatBoard() {
             `}
           >
             <p className="text-sm text-gray-800 mb-1">{post.text}</p>
-            {post.image && (
-              <img
-                src={post.image}
-                alt="Post"
-                className="w-full max-w-full sm:max-w-sm mb-2 rounded"
-              />
-            )}
+            {post.images?.length > 0 &&
+              post.images.map((url, index) => (
+                <img
+                  key={index}
+                  src={url}
+                  alt={`Post image ${index + 1}`}
+                  onClick={() => {
+                    setLightboxImages(post.images.map((url) => ({ src: url })));
+                    setLightboxIndex(index);
+                    setLightboxOpen(true);
+                  }}
+                  className="w-full max-w-full sm:max-w-sm mb-2 rounded cursor-pointer hover:opacity-90 transition"
+                />
+            ))}
             <div className="flex justify-between items-center mb-1 text-xs text-gray-500">
               <p>
                 by {post.nickname} • {formatTimestamp(post.createdAt)}
@@ -354,7 +421,7 @@ export default function ChatBoard() {
 
             {(isAdmin || user?.uid === post.userId) && (
               <button
-                onClick={() => deletePost(post.id, post.image)}
+                onClick={() => deletePost(post.id, post.images)}
                 className="text-red-500 text-sm mb-2 hover:underline"
               >
                 Delete Post
@@ -451,6 +518,16 @@ export default function ChatBoard() {
           </div>
         ))}
       </main>
+      {lightboxOpen && (
+        <Lightbox
+          open={lightboxOpen}
+          close={() => setLightboxOpen(false)}
+          index={lightboxIndex}
+          slides={lightboxImages}
+          plugins={[Zoom]}
+          zoom={{ maxZoomPixelRatio: 4 }}
+        />
+      )}
       <Footer />
     </div>
   );
