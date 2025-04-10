@@ -59,10 +59,11 @@ export default function NewActivityWindow() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-[90vw] sm:w-[360px] text-sm font-sans drop-shadow-lg">
-      {minimized ? (
+      {/* On mobile: small button when minimized */}
+      {minimized && window.innerWidth < 640 ? (
         <button
           onClick={() => setMinimized(false)}
-          className="bg-rose-600 text-white px-3 py-1 text-xs rounded-full shadow hover:bg-rose-700 transition"
+          className="bg-rose-600 text-white px-4 py-2 text-xs rounded-full shadow hover:bg-rose-700 transition"
         >
           🧠 Activity
         </button>
@@ -79,24 +80,26 @@ export default function NewActivityWindow() {
               Minimize
             </button>
           </div>
-
-          <ul className="max-h-72 overflow-y-auto text-gray-800 text-sm divide-y divide-gray-200">
-            {combined.map((item) => (
-              <li
-                key={item.id}
-                onClick={() => handleClick(item)}
-                className="px-4 py-2 hover:bg-gray-50 transition cursor-pointer"
-              >
-                {item.type === "post" ? (
-                  <span>💬 New post: {item.text.slice(0, 60)}...</span>
-                ) : (
-                  <span>🍽️ New recipe: {item.title}</span>
-                )}
-              </li>
-            ))}
-          </ul>
+  
+          {!minimized && (
+            <ul className="max-h-72 overflow-y-auto text-gray-800 text-sm divide-y divide-gray-200">
+              {combined.map((item) => (
+                <li
+                  key={item.id}
+                  onClick={() => handleClick(item)}
+                  className="px-4 py-2 hover:bg-gray-50 transition cursor-pointer"
+                >
+                  {item.type === "post" ? (
+                    <span>💬 New post: {item.text.slice(0, 60)}...</span>
+                  ) : (
+                    <span>🍽️ New recipe: {item.title}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>
-  );
+  );  
 }
