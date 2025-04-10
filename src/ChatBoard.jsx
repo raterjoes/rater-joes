@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   collection,
   addDoc,
@@ -23,7 +23,7 @@ import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import chatboardImg from "./assets/chatboard2.jpg";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 function formatTimestamp(timestamp) {
   if (!timestamp) return "";
@@ -54,6 +54,16 @@ export default function ChatBoard() {
   const [commentInputs, setCommentInputs] = useState({});
   const [commentImages, setCommentImages] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
+  const [highlightedPostId, setHighlightedPostId] = useState(null);
+  const [searchParams] = useSearchParams();
+  const postRefs = useRef({});
+
+  useEffect(() => {
+    const param = searchParams.get("post");
+    if (param) {
+      setHighlightedPostId(param);
+    }
+  }, [searchParams]);  
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -86,7 +96,7 @@ export default function ChatBoard() {
           };
         })
       );
-      setPosts(list);
+      setPosts(list);          
 
       // Expand all posts initially
       const initialExpanded = {};
@@ -98,6 +108,24 @@ export default function ChatBoard() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (highlightedPostId && postRefs.current[highlightedPostId]) {
+      const timeout = setTimeout(() => {
+        postRefs.current[highlightedPostId]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+  
+        // Fade the highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedPostId(null);
+        }, 3000);
+      }, 90);
+  
+      return () => clearTimeout(timeout);
+    }
+  }, [highlightedPostId, posts]);  
 
   useEffect(() => {
     posts.forEach((post) => {
@@ -296,7 +324,14 @@ export default function ChatBoard() {
         )}
 
         {posts.map((post) => (
-          <div key={post.id} className="mb-8 border rounded p-4 bg-white shadow">
+          <div
+            key={post.id}
+            ref={(el) => (postRefs.current[post.id] = el)}
+            className={`
+              mb-8 border rounded p-4 bg-white shadow transition
+              ${highlightedPostId === post.id ? "ring-2 ring-rose-500 animate-pulse-once" : ""}
+            `}
+          >
             <p className="text-sm text-gray-800 mb-1">{post.text}</p>
             {post.image && (
               <img

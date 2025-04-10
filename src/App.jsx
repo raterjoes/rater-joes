@@ -23,6 +23,7 @@ import Footer from "./Footer";
 import Contact from "./Contact";
 import groceriesImage from "./assets/groceries.jpg";
 import ProductCard from "./ProductCard";
+import NewActivityWindow from "./NewActivityWindow";
 
 export default function App() {
   const { user } = useAuth();
@@ -239,6 +240,7 @@ export default function App() {
         </div>
       </main>
 
+      <NewActivityWindow />
       <Footer />
     </div>
   );
