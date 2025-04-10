@@ -44,6 +44,12 @@ import meatandseafoodThumb from "./assets/category-banners/meatandseafood-thumb.
 import winesandliquorsHeader from "./assets/category-banners/winesandliquors-header.jpg"
 import winesandliquorsFooter from "./assets/category-banners/winesandliquors-footer.jpg"
 import winesandliquorsThumb from "./assets/category-banners/winesandliquors-thumb.jpg"
+import plantsandflowersHeader from "./assets/category-banners/plantsandflowers-header.jpg"
+import plantsandflowersFooter from "./assets/category-banners/plantsandflowers-footer.jpg"
+import plantsandflowersThumb from "./assets/category-banners/plantsandflowers-footer.jpg"
+import otherHeader from "./assets/category-banners/other-header.jpg"
+import otherFooter from "./assets/category-banners/other-footer.jpg"
+import otherThumb from "./assets/category-banners/other-thumb.jpg"
 
 const categoryAssets = {
   "Produce": {
@@ -120,6 +126,16 @@ const categoryAssets = {
     headerImage: winesandliquorsHeader,
     footerImage: winesandliquorsFooter,
     thumbnailImage: winesandliquorsThumb,
+  },
+  "Plants and Flowers": {
+    headerImage: plantsandflowersHeader,
+    footerImage: plantsandflowersFooter,
+    thumbnailImage: plantsandflowersThumb,
+  },
+  "Other": {
+    headerImage: otherHeader,
+    footerImage: otherFooter,
+    thumbnailImage: otherThumb,
   }
   // ...add more
 };
