@@ -71,7 +71,7 @@ export default function NewActivityWindow() {
         <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-xl">
           <div className="flex justify-between items-center px-4 py-2 bg-rose-100 border-b border-rose-200">
             <h3 className="text-base font-semibold text-rose-800 flex items-center gap-2">
-              🧠 Live Activity
+                📝 Live Activity
             </h3>
             <button
               onClick={() => setMinimized(true)}
