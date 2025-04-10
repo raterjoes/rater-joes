@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function NewActivityWindow() {
   const [posts, setPosts] = useState([]);
   const [recipes, setRecipes] = useState([]);
-  const [minimized, setMinimized] = useState(false);
+  const [minimized, setMinimized] = useState(() => window.innerWidth < 640);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,30 +49,37 @@ export default function NewActivityWindow() {
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 12);
 
-    const handleClick = (item) => {
-        if (item.type === "recipe") {
-            navigate(`/recipes/${item.id}`);
-        } else if (item.type === "post") {
-            navigate(`/chat?post=${item.id}`);
-        }
-        };
+  const handleClick = (item) => {
+    if (item.type === "recipe") {
+      navigate(`/recipes/${item.id}`);
+    } else if (item.type === "post") {
+      navigate(`/chat?post=${item.id}`);
+    }
+  };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[360px] text-sm font-sans drop-shadow-lg">
-      <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-xl">
-        <div className="flex justify-between items-center px-4 py-2 bg-rose-100 border-b border-rose-200">
-          <h3 className="text-base font-semibold text-rose-800 flex items-center gap-2">
-            🧠 Live Activity
-          </h3>
-          <button
-            onClick={() => setMinimized((prev) => !prev)}
-            className="text-xs text-rose-700 hover:underline transition"
-          >
-            {minimized ? "Expand" : "Minimize"}
-          </button>
-        </div>
+    <div className="fixed bottom-4 right-4 z-50 max-w-[90vw] sm:w-[360px] text-sm font-sans drop-shadow-lg">
+      {minimized ? (
+        <button
+          onClick={() => setMinimized(false)}
+          className="bg-rose-600 text-white px-3 py-1 text-xs rounded-full shadow hover:bg-rose-700 transition"
+        >
+          🧠 Activity
+        </button>
+      ) : (
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-xl">
+          <div className="flex justify-between items-center px-4 py-2 bg-rose-100 border-b border-rose-200">
+            <h3 className="text-base font-semibold text-rose-800 flex items-center gap-2">
+              🧠 Live Activity
+            </h3>
+            <button
+              onClick={() => setMinimized(true)}
+              className="text-xs text-rose-700 hover:underline transition"
+            >
+              Minimize
+            </button>
+          </div>
 
-        {!minimized && (
           <ul className="max-h-72 overflow-y-auto text-gray-800 text-sm divide-y divide-gray-200">
             {combined.map((item) => (
               <li
@@ -88,8 +95,8 @@ export default function NewActivityWindow() {
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
