@@ -211,7 +211,7 @@ export default function ProductPage() {
                   </div>
                 );
               })()}
-              <div className="mb-4">
+              <div className="mb-4 space-y-2">
                 <button
                   onClick={() => {
                     if (user) {
@@ -221,10 +221,26 @@ export default function ProductPage() {
                       setShowLoginMessage(true);
                     }
                   }}
-                  className="inline-block text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition"
+                  className="block text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition"
                 >
                   ✏️ Edit Product
                 </button>
+
+                <div className="flex flex-col items-start gap-2">
+                  <Link
+                    to={`/recipes?product=${encodeURIComponent(id)}`}
+                    className="inline-flex items-center text-sm bg-yellow-100 text-yellow-800 px-3 py-1 rounded hover:bg-yellow-200 transition"
+                  >
+                    📖 See Recipes
+                  </Link>
+
+                  <Link
+                    to={`/submit-recipe?product=${encodeURIComponent(id)}`}
+                    className="inline-flex items-center text-sm bg-green-100 text-green-800 px-3 py-1 rounded hover:bg-green-200 transition"
+                  >
+                    ➕ Add New Recipe
+                  </Link>
+                </div>
               </div>
             </div>
 

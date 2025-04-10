@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase";
-import { Link } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
@@ -12,6 +12,9 @@ export default function RecipesPage() {
   const [lightboxImages, setLightboxImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [searchParams] = useSearchParams();
+  const productFilter = searchParams.get("product");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,8 +59,15 @@ export default function RecipesPage() {
 
     const productMatch = taggedProductNames.includes(lowerQuery);
 
-    return titleMatch || productMatch;
+    const matchesSearch = titleMatch || productMatch;
+    const matchesFilter = productFilter
+      ? recipe.productIds?.includes(productFilter)
+      : true;
+
+    return matchesSearch && matchesFilter;
   });
+
+  const productName = products.find((p) => p.id === productFilter)?.name;
 
   return (
     <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
@@ -84,6 +94,24 @@ export default function RecipesPage() {
           />
         </div>
 
+        {/* Filter Heading and Clear Button */}
+        {productFilter && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-xl font-semibold">
+              Recipes with{" "}
+              <span className="text-rose-700">
+                {productName || "this product"}
+              </span>
+            </h2>
+            <Link
+              to="/recipes"
+              className="text-sm px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+            >
+              Clear Filter
+            </Link>
+          </div>
+        )}
+
         {filteredRecipes.length === 0 ? (
           <p>No recipes match your search.</p>
         ) : (
@@ -103,7 +131,7 @@ export default function RecipesPage() {
                         alt={`${recipe.title} ${index + 1}`}
                         className="w-40 h-32 object-cover rounded cursor-pointer hover:opacity-90"
                         onClick={(e) => {
-                          e.preventDefault(); // prevent link from navigating
+                          e.preventDefault();
                           setLightboxImages(recipe.images);
                           setLightboxIndex(index);
                           setLightboxOpen(true);

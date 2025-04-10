@@ -9,7 +9,8 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [nickname, setNickname] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -38,7 +39,7 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setMenuOpen(false);
+        setAvatarMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -47,25 +48,21 @@ export default function Navbar() {
 
   const getInitial = (str) => str?.charAt(0)?.toUpperCase() || "";
 
-  const toggleMenu = () => setMenuOpen((prev) => !prev);
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
   const handleLogout = () => {
     logout();
-    setMenuOpen(false);
+    setAvatarMenuOpen(false);
     setMobileMenuOpen(false);
   };
 
   return (
     <header className="bg-rose-800/80 shadow px-4 py-4 relative z-20">
       <div className="w-full flex justify-between items-center">
-        {/* Left: Site logo */}
         <Link to="/" className="text-xl font-bold text-white hover:underline">
           Rater Joe’s
         </Link>
 
-        {/* Right side controls */}
         <div className="flex items-center gap-4">
-          {/* Hamburger for mobile */}
           <button
             className="sm:hidden text-white"
             onClick={toggleMobileMenu}
@@ -74,53 +71,48 @@ export default function Navbar() {
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          {/* Desktop nav links */}
           <nav className="hidden sm:flex items-center space-x-4 text-white text-base">
             {user && (
               <span className="text-sm italic">Hi, {nickname || user.email}</span>
             )}
+
             {user && isAdmin && (
-              <>
-                <Link to="/pending-products" className="hover:underline">
-                  Pending Products
-                </Link>
-                <Link to="/pending-review-images" className="hover:underline">
-                  Pending Review Images
-                </Link>
-                <Link to="/pending-recipes" className="hover:underline">
-                  Pending Recipes
-                </Link>
-              </>
+              <div className="relative group">
+                <button className="hover:underline">Admin</button>
+                <div
+                  className="absolute right-0 mt-2 bg-white text-gray-800 border rounded shadow w-48 z-50
+                  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out"
+                >
+                  <Link to="/pending-products" className="block px-4 py-2 hover:bg-gray-100">
+                    Pending Products
+                  </Link>
+                  <Link to="/pending-review-images" className="block px-4 py-2 hover:bg-gray-100">
+                    Pending Review Images
+                  </Link>
+                  <Link to="/pending-recipes" className="block px-4 py-2 hover:bg-gray-100">
+                    Pending Recipes
+                  </Link>
+                </div>
+            </div>
             )}
-            <Link to="/contact" className="hover:underline">
-              Contact
-            </Link>
-            <Link to="/chat" className="hover:underline">
-              Chat
-            </Link>
-            <Link to="/seasonal" className="hover:underline">
-              Seasonal
-            </Link>
-            <Link to="/categories" className="hover:underline">
-              Categories
-            </Link>
-            <Link to="/recipes" className="hover:underline">
-              Recipes
-            </Link>
+
+            <Link to="/contact" className="hover:underline">Contact</Link>
+            <Link to="/chat" className="hover:underline">Chat</Link>
+            <Link to="/seasonal" className="hover:underline">Seasonal</Link>
+            <Link to="/categories" className="hover:underline">Categories</Link>
+            <Link to="/recipes" className="hover:underline">Recipes</Link>
+
             {!user && (
-              <Link to="/login" className="hover:underline">
-                Log In
-              </Link>
+              <Link to="/login" className="hover:underline">Log In</Link>
             )}
           </nav>
 
-          {/* User avatar dropdown (always visible when logged in) */}
           {user && (
             <div className="relative" ref={dropdownRef}>
               <button
-                onClick={(e) => {
+                onClick={() => {
                   if (window.innerWidth >= 640) {
-                    toggleMenu();
+                    setAvatarMenuOpen((prev) => !prev);
                   }
                 }}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-green-600 text-white font-semibold text-sm focus:outline-none"
@@ -128,10 +120,9 @@ export default function Navbar() {
                 {getInitial(nickname || user.email)}
               </button>
 
-              {/* Desktop dropdown */}
               <div
                 className={`hidden sm:block absolute right-0 mt-2 bg-white border shadow rounded text-sm z-50 transform transition-all duration-200 ease-out ${
-                  menuOpen
+                  avatarMenuOpen
                     ? "opacity-100 scale-100"
                     : "opacity-0 scale-95 pointer-events-none"
                 }`}
@@ -148,7 +139,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile dropdown menu */}
+      {/* Mobile menu */}
       <div
         className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
           mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
@@ -158,33 +149,24 @@ export default function Navbar() {
           <div className="italic">Hi, {nickname || user.email}</div>
         )}
         {user && isAdmin && (
-          <>
-            <Link to="/pending-products" className="block hover:underline">
+          <div className="space-y-1">
+            <p className="font-semibold mt-2">Admin</p>
+            <Link to="/pending-products" className="block hover:underline ml-2">
               Pending Products
             </Link>
-            <Link to="/pending-review-images" className="block hover:underline">
+            <Link to="/pending-review-images" className="block hover:underline ml-2">
               Pending Review Images
             </Link>
-            <Link to="/pending-recipes" className="hover:underline">
+            <Link to="/pending-recipes" className="block hover:underline ml-2">
               Pending Recipes
             </Link>
-          </>
+          </div>
         )}
-        <Link to="/contact" className="block hover:underline">
-          Contact
-        </Link>
-        <Link to="/chat" className="block hover:underline">
-          Chat
-        </Link>
-        <Link to="/seasonal" className="block hover:underline">
-          Seasonal
-        </Link>
-        <Link to="/categories" className="block hover:underline">
-          Categories
-        </Link>
-        <Link to="/recipes" className="block hover:underline">
-          Recipes
-        </Link>
+        <Link to="/contact" className="block hover:underline">Contact</Link>
+        <Link to="/chat" className="block hover:underline">Chat</Link>
+        <Link to="/seasonal" className="block hover:underline">Seasonal</Link>
+        <Link to="/categories" className="block hover:underline">Categories</Link>
+        <Link to="/recipes" className="block hover:underline">Recipes</Link>
         {user && (
           <button
             onClick={handleLogout}
@@ -194,9 +176,7 @@ export default function Navbar() {
           </button>
         )}
         {!user && (
-          <Link to="/login" className="block hover:underline">
-            Log In
-          </Link>
+          <Link to="/login" className="block hover:underline">Log In</Link>
         )}
       </div>
     </header>
