@@ -37,7 +37,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-orange-50">
       <Navbar />
 
       <main className="flex-grow max-w-2xl mx-auto px-6 py-12 text-gray-800">
