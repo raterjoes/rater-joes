@@ -185,7 +185,8 @@ export default function App() {
           </div>
         </div>
 
-        <div className="w-full max-w-5xl mx-auto px-4 mt-4 flex flex-wrap justify-center gap-3">
+        {/* Show on desktop/tablet only */}
+        <div className="hidden sm:flex w-full max-w-5xl mx-auto px-4 mt-4 flex-wrap justify-center gap-3">
           {categories.map((cat) => {
             const catProducts = categorized[cat] || [];
             if (catProducts.length === 0) return null;
@@ -200,6 +201,16 @@ export default function App() {
               </a>
             );
           })}
+        </div>
+
+        {/* Show only on mobile */}
+        <div className="sm:hidden flex justify-center mt-4">
+          <Link
+            to="/categories"
+            className="px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900"
+          >
+            Browse Categories
+          </Link>
         </div>
 
         <div className="p-6 space-y-12">
