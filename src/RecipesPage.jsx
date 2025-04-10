@@ -4,6 +4,8 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import recipesHeader from "./assets/recipes-header.jpg";
+import recipesFooter from "./assets/recipes-footer.jpg"
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState([]);
@@ -72,8 +74,13 @@ export default function RecipesPage() {
   return (
     <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
       <Navbar />
-      <main className="flex-grow max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
+      <main className="flex-grow max-w-5xl mx-auto px-4 py-4">
+        <img
+          src={recipesHeader}
+          className="w-full max-h-40 object-cover rounded shadow mb-2"
+          alt="Recipes header"
+        />
+        <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-bold">Recipes</h1>
           <Link
             to="/submit-recipe"
@@ -84,7 +91,7 @@ export default function RecipesPage() {
         </div>
 
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="mb-4">
           <input
             type="text"
             value={searchQuery}
@@ -171,6 +178,11 @@ export default function RecipesPage() {
             ))}
           </div>
         )}
+      <img
+        src={recipesFooter}
+        className="w-full max-h-40 object-cover rounded shadow mb-2 mt-6"
+        alt="Recipes footer"
+      />
       </main>
       <Footer />
 
