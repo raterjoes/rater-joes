@@ -309,7 +309,7 @@ export default function ChatBoard() {
   };  
 
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden bg-gray-50">
+    <div className="flex flex-col min-h-screen overflow-x-hidden bg-orange-50">
       <Navbar />
       <main className="flex-grow max-w-3xl mx-auto px-4 py-10">
         <img
