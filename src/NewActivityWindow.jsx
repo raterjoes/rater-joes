@@ -65,7 +65,7 @@ export default function NewActivityWindow() {
           onClick={() => setMinimized(false)}
           className="bg-rose-600 text-white px-4 py-2 text-xs rounded-full shadow hover:bg-rose-700 transition"
         >
-          🧠 Activity
+          New Activity
         </button>
       ) : (
         <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-xl">
