@@ -63,7 +63,7 @@ export default function NewActivityWindow() {
       {minimized && window.innerWidth < 640 ? (
         <button
           onClick={() => setMinimized(false)}
-          className="bg-rose-100 text-rose-800 px-5 py-2 text-sm font-semibold rounded-full shadow hover:bg-rose-200 transition"
+          className="bg-white text-rose-800 border border-rose-800 px-5 py-2 text-sm font-semibold rounded-full shadow-sm hover:bg-rose-50 transition"
         >
           New Activity
         </button>
