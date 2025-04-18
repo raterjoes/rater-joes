@@ -74,28 +74,26 @@ export default function AddItemForm() {
     setImageInputs(updated);
   };
 
+const moveImage = (fromIndex, toIndex) => {
+  const updated = [...imageInputs];
+  const [moved] = updated.splice(fromIndex, 1);
+  updated.splice(toIndex, 0, moved);
+  setImageInputs(updated);
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const imageUrls = [];
 
-      const uploadPromises = imageInputs
-        .filter(Boolean)
-        .map(async (file) => {
-          const uniqueSuffix = `${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 8)}`;
-          const imageRef = ref(
-            storage,
-            `product-images/${uniqueSuffix}-${file.name}`
-          );
-          await uploadBytes(imageRef, file);
-          const url = await getDownloadURL(imageRef);
-          imageUrls.push(url);
-        });
-
-      await Promise.all(uploadPromises);
+      for (const file of imageInputs.filter(Boolean)) {
+        const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+        const imageRef = ref(storage, `product-images/${uniqueSuffix}-${file.name}`);
+        await uploadBytes(imageRef, file);
+        const url = await getDownloadURL(imageRef);
+        imageUrls.push(url);
+      }
 
       await addDoc(collection(db, "products"), {
         name,
@@ -253,7 +251,7 @@ export default function AddItemForm() {
                       className="w-full p-2 border rounded"
                     />
                     {file && (
-                      <div className="relative inline-block mt-2">
+                      <div className="relative inline-block mt-2 mr-2">
                         <img
                           src={URL.createObjectURL(file)}
                           alt={`Preview ${index + 1}`}
@@ -266,6 +264,28 @@ export default function AddItemForm() {
                         >
                           ✖
                         </button>
+
+                        {/* Reorder buttons */}
+                        <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
+                          {index > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => moveImage(index, index - 1)}
+                              className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              ↑
+                            </button>
+                          )}
+                          {index < imageInputs.length - 2 && (
+                            <button
+                              type="button"
+                              onClick={() => moveImage(index, index + 1)}
+                              className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              ↓
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

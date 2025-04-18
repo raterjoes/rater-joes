@@ -41,25 +41,35 @@ function EditProductForm({ product, onCancel, onSave }) {
     setNewImageFiles(updated);
   };
 
+  const moveNewImage = (fromIndex, toIndex) => {
+    const updated = [...newImageFiles];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setNewImageFiles(updated);
+  };
+
+  const moveExistingImage = (fromIndex, toIndex) => {
+    const updated = [...existingImages];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setExistingImages(updated);
+  };  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const uploadedImageUrls = [];
 
-      const uploadPromises = newImageFiles
-        .filter(Boolean)
-        .map(async (file) => {
-          const imageRef = ref(
-            storage,
-            `product-images/${Date.now()}-${file.name}`
-          );
-          await uploadBytes(imageRef, file);
-          const url = await getDownloadURL(imageRef);
-          uploadedImageUrls.push(url);
-        });
-
-      await Promise.all(uploadPromises);
+      for (const file of newImageFiles.filter(Boolean)) {
+        const imageRef = ref(
+          storage,
+          `product-images/${Date.now()}-${file.name}`
+        );
+        await uploadBytes(imageRef, file);
+        const url = await getDownloadURL(imageRef);
+        uploadedImageUrls.push(url);
+      }
 
       const allImages = [...existingImages, ...uploadedImageUrls];
 
@@ -123,13 +133,37 @@ function EditProductForm({ product, onCancel, onSave }) {
               >
                 ✖
               </button>
+
+              {/* Reorder buttons */}
+              <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
+                {index > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => moveExistingImage(index, index - 1)}
+                    className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    ←
+                  </button>
+                )}
+                {index < existingImages.length - 1 && (
+                  <button
+                    type="button"
+                    onClick={() => moveExistingImage(index, index + 1)}
+                    className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    →
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* New images */}
+      {/* New image uploads + reorder */}
       {newImageFiles.map((file, index) => {
+        const validCount = newImageFiles.filter(Boolean).length;
+
         const showAddLabel =
           newImageFiles[index] === null &&
           (index > 0
@@ -150,7 +184,7 @@ function EditProductForm({ product, onCancel, onSave }) {
               className="w-full p-2 border rounded"
             />
             {file && (
-              <div className="relative inline-block mt-2">
+              <div className="relative inline-block mt-2 mr-2">
                 <img
                   src={URL.createObjectURL(file)}
                   alt={`Preview ${index + 1}`}
@@ -163,6 +197,27 @@ function EditProductForm({ product, onCancel, onSave }) {
                 >
                   ✖
                 </button>
+
+                <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => moveNewImage(index, index - 1)}
+                      className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      ←
+                    </button>
+                  )}
+                  {index < newImageFiles.length - 1 && newImageFiles[index + 1] !== null && (
+                    <button
+                      type="button"
+                      onClick={() => moveNewImage(index, index + 1)}
+                      className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      →
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
