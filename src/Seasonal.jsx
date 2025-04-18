@@ -5,6 +5,8 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Link } from "react-router-dom";
 
+import ProductCard from "./ProductCard";
+
 // 🌸 Season Images
 import winterImg from "./assets/winter.jpg";
 import springImg from "./assets/spring2.jpg";
@@ -96,19 +98,17 @@ function ProductGrid({ products }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {products.map((product) => (
-        <Link
+        <ProductCard
           key={product.id}
-          to={`/products/${product.id}`}
-          className="bg-white shadow rounded p-4 hover:shadow-lg transition"
-        >
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-48 object-cover rounded mb-2"
-          />
-          <h3 className="text-lg font-bold">{product.name}</h3>
-          <p className="text-sm text-gray-600">{product.description}</p>
-        </Link>
+          productId={product.id}
+          name={product.name}
+          description={product.description}
+          image={product.image}
+          images={product.images}
+          reviews={product.reviews || []}
+          seasonal={product.seasonal}
+          season={product.season}
+        />
       ))}
     </div>
   );
