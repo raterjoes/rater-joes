@@ -108,6 +108,49 @@ export default function ProductPage() {
     }
   };
 
+  const handleDeleteProduct = async () => {
+    if (!window.confirm("Are you sure you want to delete this product, its reviews, and all images?")) return;
+  
+    try {
+      // 1. Delete product images
+      const allImages = [...(product.images || []), ...(product.image ? [product.image] : [])];
+      for (const url of allImages) {
+        const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+        const imgRef = storageRef(storage, path);
+        await deleteObject(imgRef).catch(() => {});
+      }
+  
+      // 2. Delete all reviews and their images
+      const reviewSnap = await getDocs(query(collection(db, "reviews"), where("productId", "==", id)));
+      for (const reviewDoc of reviewSnap.docs) {
+        const reviewId = reviewDoc.id;
+  
+        // delete subcollection images
+        const imageSnap = await getDocs(collection(db, `reviews/${reviewId}/images`));
+        for (const imgDoc of imageSnap.docs) {
+          const imgData = imgDoc.data();
+          if (imgData.url) {
+            const path = decodeURIComponent(imgData.url.split("/o/")[1].split("?")[0]);
+            await deleteObject(storageRef(storage, path)).catch(() => {});
+          }
+          await deleteDoc(imgDoc.ref);
+        }
+  
+        await deleteDoc(reviewDoc.ref);
+      }
+  
+      // 3. Delete product doc
+      await deleteDoc(doc(db, "products", id));
+  
+      // 4. Navigate away
+      alert("✅ Product deleted.");
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      alert("Failed to delete product.");
+    }
+  };  
+
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user) return;
@@ -225,6 +268,15 @@ export default function ProductPage() {
                 >
                   ✏️ Edit Product
                 </button>
+
+                {isAdmin && (
+                  <button
+                    onClick={handleDeleteProduct}
+                    className="block text-sm bg-red-100 text-red-800 px-3 py-1 rounded hover:bg-red-200 transition"
+                  >
+                    🗑️ Delete Product
+                  </button>
+                )}
 
                 <div className="flex flex-col items-start gap-2">
                   <Link
