@@ -1,4 +1,4 @@
-// src/AnalyticsTracker.jsx
+// AnalyticsTracker.jsx
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { initAnalytics, logPageView } from "./analytics";
