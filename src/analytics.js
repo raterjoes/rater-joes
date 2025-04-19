@@ -4,11 +4,12 @@ export const initAnalytics = () => {
   ReactGA.initialize([
     {
       trackingId: "G-XGXNILBDRPY",
-      gtagOptions: {
-        debug_mode: true,
-      },
-    },
+      gtagOptions: { debug_mode: true }
+    }
   ]);
+
+  // Force it globally
+  ReactGA.set({ debug_mode: true });
 };
 
 export const logPageView = (path) => {
