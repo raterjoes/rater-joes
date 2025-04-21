@@ -25,6 +25,8 @@ import groceriesImage from "./assets/groceries.jpg";
 import ProductCard from "./ProductCard";
 import NewActivityWindow from "./NewActivityWindow";
 
+import ReactGA from 'react-ga4';
+
 export default function App() {
   const { user } = useAuth();
   const [reviews, setReviews] = useState({});
@@ -32,6 +34,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [nickname, setNickname] = useState(null);
 
+  useEffect(() => {
+    ReactGA.initialize('G-XXXXXXXXXX'); // Replace with your Measurement ID
+    ReactGA.send('pageview');
+  }, []);
+  
   useEffect(() => {
     const fetchNickname = async () => {
       if (user) {
