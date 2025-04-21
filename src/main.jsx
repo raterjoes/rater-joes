@@ -18,13 +18,11 @@ import SubmitRecipePage from "./SubmitRecipePage";
 import RecipesPage from "./RecipesPage";
 import PendingRecipes from "./PendingRecipes";
 import RecipeDetailPage from "./RecipeDetailPage";
-import AnalyticsTracker from "./AnalyticsTracker";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
-        <AnalyticsTracker />
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/login" element={<AuthForm />} />

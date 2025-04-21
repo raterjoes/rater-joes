@@ -24,8 +24,7 @@ import Contact from "./Contact";
 import groceriesImage from "./assets/groceries.jpg";
 import ProductCard from "./ProductCard";
 import NewActivityWindow from "./NewActivityWindow";
-
-import ReactGA from 'react-ga4';
+import usePageTracking from "./usePageTracking";
 
 export default function App() {
   const { user } = useAuth();
@@ -33,11 +32,8 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [nickname, setNickname] = useState(null);
-
-  useEffect(() => {
-    ReactGA.initialize('G-XGXNLBDRPY'); // Replace with your Measurement ID
-    ReactGA.send('pageview');
-  }, []);
+  
+  usePageTracking();
   
   useEffect(() => {
     const fetchNickname = async () => {
@@ -112,6 +108,13 @@ export default function App() {
         userEmail: includeName ? userEmail : null,
         createdAt: serverTimestamp()
       });
+      if (window.gtag) {
+        window.gtag("event", "submit_review", {
+          category: "engagement",
+          label: productId,
+          value: rating
+        });
+      }      
     } catch (err) {
       console.error("Submit error:", err);
       alert("Failed to submit review.");
