@@ -35,7 +35,7 @@ export default function App() {
   const [nickname, setNickname] = useState(null);
 
   useEffect(() => {
-    ReactGA.initialize('G-XXXXXXXXXX'); // Replace with your Measurement ID
+    ReactGA.initialize('G-XGXNLBDRPY'); // Replace with your Measurement ID
     ReactGA.send('pageview');
   }, []);
   
