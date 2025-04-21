@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import { db, storage } from "./firebase";
 import { useParams } from "react-router-dom";
 import { useAuth } from "./AuthContext";
@@ -10,7 +10,7 @@ export default function ReviewForm({ onSubmit }) {
   const [rating, setRating] = useState(5);
   const [includeName, setIncludeName] = useState(true);
   const [imageInputs, setImageInputs] = useState([null]);
-  const [inputKey, setInputKey] = useState(0); // ✅ force input re-render on reset
+  const [inputKey, setInputKey] = useState(0);
 
   const { id: productId } = useParams();
   const { user } = useAuth();
@@ -45,13 +45,21 @@ export default function ReviewForm({ onSubmit }) {
         return;
       }
 
+      let nickname = null;
+      if (includeName) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          nickname = userDoc.data().nickname || null;
+        }
+      }
+
       const reviewRef = await addDoc(collection(db, "reviews"), {
         productId,
         text,
         rating,
         includeName,
-        nickname: includeName ? (user.displayName || user.email || null) : null,
-        userEmail: user.email,
+        nickname: includeName ? nickname : null,
+        userEmail: includeName ? user.email : null,
         createdAt: serverTimestamp(),
       });
 
@@ -77,7 +85,7 @@ export default function ReviewForm({ onSubmit }) {
       setRating(5);
       setIncludeName(true);
       setImageInputs([null]);
-      setInputKey((prev) => prev + 1); // ✅ force input reset
+      setInputKey((prev) => prev + 1);
     } catch (err) {
       console.error("Error submitting review:", err);
       alert("Failed to submit review. Please try again.");
@@ -136,7 +144,7 @@ export default function ReviewForm({ onSubmit }) {
                 </p>
               )}
               <input
-                key={`${index}-${inputKey}`} // ✅ forces input to reset
+                key={`${index}-${inputKey}`}
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleImageChange(index, e.target.files[0])}
