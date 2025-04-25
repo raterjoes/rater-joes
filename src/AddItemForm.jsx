@@ -34,6 +34,8 @@ export default function AddItemForm() {
   const [suggestedMatch, setSuggestedMatch] = useState(null);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (imageInputs.length === 0 || imageInputs.every((f) => f !== null)) {
       setImageInputs((prev) => [...prev, null]);
@@ -94,18 +96,32 @@ const moveImage = (fromIndex, toIndex) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const imageUrls = [];
+      // 🔥 Create upload tasks with original index attached
+      const uploadTasks = imageInputs
+        .map((file, index) => {
+          if (!file) return null;
+          return (async () => {
+            const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+            const imageRef = ref(storage, `product-images/${uniqueSuffix}-${file.name}`);
+            await uploadBytes(imageRef, file);
+            const url = await getDownloadURL(imageRef);
+            return { index, url }; // Keep track of index
+          })();
+        })
+        .filter(Boolean);
 
-      for (const file of imageInputs.filter(Boolean)) {
-        const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-        const imageRef = ref(storage, `product-images/${uniqueSuffix}-${file.name}`);
-        await uploadBytes(imageRef, file);
-        const url = await getDownloadURL(imageRef);
-        imageUrls.push(url);
-      }
+      // 🔥 Run all uploads in parallel
+      const uploadResults = await Promise.all(uploadTasks);
 
+      // 🔥 Sort the uploaded images by original index
+      const imageUrls = uploadResults
+        .sort((a, b) => a.index - b.index)
+        .map((result) => result.url);
+
+      // ✅ Save product with images in correct order
       await addDoc(collection(db, "products"), {
         name,
         category,
@@ -122,6 +138,8 @@ const moveImage = (fromIndex, toIndex) => {
     } catch (err) {
       console.error("❌ Error submitting product:", err);
       alert("Error adding product");
+    } finally {
+    setLoading(false); // ✅ Always stop loading at the end
     }
   };
 
@@ -201,9 +219,7 @@ const moveImage = (fromIndex, toIndex) => {
                   <button
                     type="button"
                     className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
-                    onClick={() =>
-                      navigate(`/products/${suggestedMatch.id}`)
-                    }
+                    onClick={() => navigate(`/products/${suggestedMatch.id}`)}
                   >
                     Yes, that's it
                   </button>
@@ -218,133 +234,148 @@ const moveImage = (fromIndex, toIndex) => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Product Name"
-                className="w-full p-2 border rounded"
-                value={name}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setName(value);
-                  checkForSimilarProduct(value);
-                }}
-                required
-              />
-
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                {categories.map((cat) => (
-                  <option key={cat}>{cat}</option>
-                ))}
-              </select>
-
-              {imageInputs.map((file, index) => {
-                const isNextEmptyInput =
-                  index > 0 && imageInputs[index] === null && imageInputs[index - 1] !== null;
-
-                return (
-                  <div key={index} className="relative mt-2">
-                    {isNextEmptyInput && (
-                      <p className="text-sm font-medium text-gray-700 mb-1">
-                        Add another image?
-                      </p>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={(el) => (fileInputRefs.current[index] = el)}
-                      onChange={(e) => handleImageChange(index, e.target.files[0])}
-                      className="w-full p-2 border rounded"
-                    />
-                    {file && (
-                      <div className="relative inline-block mt-2 mr-2">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={`Preview ${index + 1}`}
-                          className="w-24 h-24 object-cover rounded border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(index)}
-                          className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                        >
-                          ✖
-                        </button>
-
-                        {/* Reorder buttons */}
-                        <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
-                          {index > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => moveImage(index, index - 1)}
-                              className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                              ↑
-                            </button>
-                          )}
-                          {index < imageInputs.length - 2 && (
-                            <button
-                              type="button"
-                              onClick={() => moveImage(index, index + 1)}
-                              className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                              ↓
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              <textarea
-                placeholder="Description"
-                className="w-full p-2 border rounded"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="seasonal"
-                  checked={isSeasonal}
-                  onChange={(e) => setIsSeasonal(e.target.checked)}
-                />
-                <label htmlFor="seasonal" className="text-sm">
-                  Limited/Seasonal?
-                </label>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center mt-10 space-y-2 text-gray-700">
+                <div className="text-4xl animate-spin-slow">🛒</div>
+                <p className="text-lg font-semibold">Uploading your product...</p>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Product Name"
+                  className="w-full p-2 border rounded"
+                  value={name}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setName(value);
+                    checkForSimilarProduct(value);
+                  }}
+                  required
+                />
 
-              {isSeasonal && (
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat}>{cat}</option>
+                  ))}
+                </select>
+
+                {imageInputs.map((file, index) => {
+                  const isNextEmptyInput =
+                    index > 0 &&
+                    imageInputs[index] === null &&
+                    imageInputs[index - 1] !== null;
+
+                  return (
+                    <div key={index} className="relative mt-2">
+                      {isNextEmptyInput && (
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          Add another image?
+                        </p>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={(el) => (fileInputRefs.current[index] = el)}
+                        onChange={(e) =>
+                          handleImageChange(index, e.target.files[0])
+                        }
+                        className="w-full p-2 border rounded"
+                      />
+                      {file && (
+                        <div className="relative inline-block mt-2 mr-2">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-24 h-24 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                          >
+                            ✖
+                          </button>
+
+                          {/* Reorder buttons */}
+                          <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => moveImage(index, index - 1)}
+                                className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                              >
+                                ↑
+                              </button>
+                            )}
+                            {index < imageInputs.length - 2 && (
+                              <button
+                                type="button"
+                                onClick={() => moveImage(index, index + 1)}
+                                className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                              >
+                                ↓
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <textarea
+                  placeholder="Description"
+                  className="w-full p-2 border rounded"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                />
+
                 <div className="flex items-center gap-2">
-                  <label htmlFor="season" className="text-sm font-medium">
-                    Season:
+                  <input
+                    type="checkbox"
+                    id="seasonal"
+                    checked={isSeasonal}
+                    onChange={(e) => setIsSeasonal(e.target.checked)}
+                  />
+                  <label htmlFor="seasonal" className="text-sm">
+                    Limited/Seasonal?
                   </label>
-                  <select
-                    id="season"
-                    value={season}
-                    onChange={(e) => setSeason(e.target.value)}
-                    className="flex-grow p-2 border rounded"
-                  >
-                    <option>Winter</option>
-                    <option>Spring</option>
-                    <option>Summer</option>
-                    <option>Fall</option>
-                  </select>
                 </div>
-              )}
 
-              <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                Submit Product
-              </button>
-            </form>
+                {isSeasonal && (
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="season" className="text-sm font-medium">
+                      Season:
+                    </label>
+                    <select
+                      id="season"
+                      value={season}
+                      onChange={(e) => setSeason(e.target.value)}
+                      className="flex-grow p-2 border rounded"
+                    >
+                      <option>Winter</option>
+                      <option>Spring</option>
+                      <option>Summer</option>
+                      <option>Fall</option>
+                    </select>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Submit Product
+                </button>
+              </form>
+            )}
           </div>
         )}
       </main>

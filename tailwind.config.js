@@ -4,7 +4,7 @@ module.exports = {
   theme: {
     extend: {
       animation: {
-        'pulse-once': 'pulse-once 1.2s ease-out 1',
+        'pulse-once': 'pulse-once 1.2s ease-out 1','spin-slow': 'spin 2s linear infinite',
       },
       keyframes: {
         'pulse-once': {

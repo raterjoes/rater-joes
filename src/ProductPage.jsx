@@ -354,7 +354,7 @@ export default function ProductPage() {
               You must be logged in to edit this product.
             </p>
           ) : (
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+            <p className="text-lg text-gray-700 leading-relaxed mb-2">
               {product.description}
             </p>
           )}
@@ -368,7 +368,7 @@ export default function ProductPage() {
           {user ? (
             <ReviewForm onSubmit={handleReviewSubmit} productId={id} />
           ) : (
-            <p className="text-sm text-red-500 mt-4">
+            <p className="text-sm text-red-500 mt-2">
               Please{" "}
               <Link
                 to="/login"
