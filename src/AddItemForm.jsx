@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import {
   collection,
@@ -25,6 +25,7 @@ export default function AddItemForm() {
 
   const [name, setName] = useState("");
   const [imageInputs, setImageInputs] = useState([null]);
+  const [fileInputRefs, setFileInputRefs] = useState([useRef(null)]);
   const [description, setDescription] = useState("");
   const [isSeasonal, setIsSeasonal] = useState(false);
   const [season, setSeason] = useState("Winter");
@@ -57,22 +58,34 @@ export default function AddItemForm() {
     const updated = [...imageInputs];
     updated[index] = file;
     setImageInputs(updated);
-
+  
     if (updated.every((f) => f !== null)) {
       setImageInputs([...updated, null]);
+      setFileInputRefs([...fileInputRefs, useRef(null)]); // add new ref
     }
-  };
+  };  
 
   const handleRemoveImage = (index) => {
-    const updated = [...imageInputs];
-    updated.splice(index, 1);
-
-    if (updated.length === 0 || updated.every((f) => f !== null)) {
-      updated.push(null);
-    }
-
-    setImageInputs(updated);
-  };
+    const updatedInputs = [...imageInputs];
+    const updatedRefs = [...fileInputRefs];
+    if (fileInputRefs[index]?.current) {
+      fileInputRefs[index].current.value = null;
+    }    
+  
+    updatedInputs.splice(index, 1);
+    updatedRefs.splice(index, 1);
+  
+    setImageInputs(
+      updatedInputs.length === 0 || updatedInputs.every((f) => f !== null)
+        ? [...updatedInputs, null]
+        : updatedInputs
+    );
+    setFileInputRefs(
+      updatedRefs.length === 0 || updatedRefs.every((r) => r !== null)
+        ? [...updatedRefs, useRef(null)]
+        : updatedRefs
+    );
+  };  
 
 const moveImage = (fromIndex, toIndex) => {
   const updated = [...imageInputs];
@@ -245,9 +258,8 @@ const moveImage = (fromIndex, toIndex) => {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) =>
-                        handleImageChange(index, e.target.files[0])
-                      }
+                      ref={fileInputRefs[index]}
+                      onChange={(e) => handleImageChange(index, e.target.files[0])}
                       className="w-full p-2 border rounded"
                     />
                     {file && (
