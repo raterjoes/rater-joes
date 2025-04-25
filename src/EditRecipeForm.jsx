@@ -10,6 +10,8 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "./firebase";
 import { useAuth } from "./AuthContext";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 export default function EditRecipeForm() {
   const { id } = useParams();
@@ -144,153 +146,166 @@ export default function EditRecipeForm() {
   if (!recipe) return <p className="p-4">Loading recipe...</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 bg-white shadow rounded space-y-4">
-      <h2 className="text-2xl font-bold mb-2">Edit Recipe</h2>
-
-      <input
-        type="text"
-        placeholder="Recipe title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full p-2 border rounded"
-        required
-      />
-
-      <textarea
-        placeholder="Short description (optional)"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full p-2 border rounded"
-        rows={2}
-      />
-
-      <textarea
-        placeholder="Steps / ingredients"
-        value={steps}
-        onChange={(e) => setSteps(e.target.value)}
-        className="w-full p-2 border rounded"
-        rows={5}
-        required
-      />
-
-      <div className="space-y-2">
-        <p className="font-semibold">Tagged Products:</p>
-
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search products..."
-          className="w-full p-2 border rounded"
-        />
-
-        {searchQuery && (
-          <ul className="bg-white border rounded shadow max-h-40 overflow-y-auto">
-            {products
-              .filter(
-                (p) =>
-                  p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                  !selectedProducts.includes(p.id)
-              )
-              .map((p) => (
-                <li
-                  key={p.id}
-                  onClick={() => {
-                    setSelectedProducts([...selectedProducts, p.id]);
-                    setSearchQuery("");
-                  }}
-                  className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
-                >
-                  {p.name}
-                </li>
-              ))}
-          </ul>
-        )}
-
-        {selectedProducts.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {selectedProducts.map((id) => {
-              const product = products.find((p) => p.id === id);
-              return (
-                <span
-                  key={id}
-                  className="bg-rose-200 text-rose-800 px-2 py-1 rounded-full text-xs flex items-center gap-1"
-                >
-                  {product?.name}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedProducts((prev) => prev.filter((pid) => pid !== id))
-                    }
-                    className="text-rose-800 hover:text-red-600"
-                  >
-                    ×
-                  </button>
-                </span>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <p className="font-semibold">Existing Images:</p>
-        <div className="flex flex-wrap gap-2">
-          {existingImages.map((url, index) => (
-            <div key={index} className="relative inline-block">
-              <img
-                src={url}
-                alt={`Image ${index + 1}`}
-                className="w-24 h-24 object-cover rounded border"
-              />
-              <button
-                type="button"
-                onClick={() => handleRemoveExistingImage(index)}
-                className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-              >
-                ✖
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="font-semibold">Upload New Images:</p>
-        {imageInputs.map((file, index) => (
-          <div key={index} className="relative mt-2">
+    <div className="flex flex-col min-h-screen bg-orange-50 text-gray-900">
+      <Navbar />
+  
+      <main className="flex-grow">
+        <div className="max-w-2xl mx-auto mt-10 p-6 bg-white shadow rounded">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <h2 className="text-2xl font-bold mb-2">Edit Recipe</h2>
+  
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageChange(index, e.target.files[0])}
+              type="text"
+              placeholder="Recipe title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               className="w-full p-2 border rounded"
+              required
             />
-            {file && (
-              <div className="relative inline-block mt-2">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index + 1}`}
-                  className="w-24 h-24 object-cover rounded border"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveNewImage(index)}
-                  className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                >
-                  ✖
-                </button>
+  
+            <textarea
+              placeholder="Short description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-2 border rounded"
+              rows={2}
+            />
+  
+            <textarea
+              placeholder="Steps / ingredients"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              className="w-full p-2 border rounded"
+              rows={5}
+              required
+            />
+  
+            {/* Tagged Products */}
+            <div className="space-y-2">
+              <p className="font-semibold">Tagged Products:</p>
+  
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                className="w-full p-2 border rounded"
+              />
+  
+              {searchQuery && (
+                <ul className="bg-white border rounded shadow max-h-40 overflow-y-auto">
+                  {products
+                    .filter(
+                      (p) =>
+                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                        !selectedProducts.includes(p.id)
+                    )
+                    .map((p) => (
+                      <li
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProducts([...selectedProducts, p.id]);
+                          setSearchQuery("");
+                        }}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                      >
+                        {p.name}
+                      </li>
+                    ))}
+                </ul>
+              )}
+  
+              {selectedProducts.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedProducts.map((id) => {
+                    const product = products.find((p) => p.id === id);
+                    return (
+                      <span
+                        key={id}
+                        className="bg-rose-200 text-rose-800 px-2 py-1 rounded-full text-xs flex items-center gap-1"
+                      >
+                        {product?.name}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedProducts((prev) => prev.filter((pid) => pid !== id))
+                          }
+                          className="text-rose-800 hover:text-red-600"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+  
+            {/* Existing Images */}
+            <div>
+              <p className="font-semibold">Existing Images:</p>
+              <div className="flex flex-wrap gap-2">
+                {existingImages.map((url, index) => (
+                  <div key={index} className="relative inline-block">
+                    <img
+                      src={url}
+                      alt={`Image ${index + 1}`}
+                      className="w-24 h-24 object-cover rounded border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExistingImage(index)}
+                      className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      ✖
+                    </button>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <button
-        type="submit"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        Save Changes
-      </button>
-    </form>
-  );
+            </div>
+  
+            {/* New Image Uploads */}
+            <div>
+              <p className="font-semibold">Upload New Images:</p>
+              {imageInputs.map((file, index) => (
+                <div key={index} className="relative mt-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(index, e.target.files[0])}
+                    className="w-full p-2 border rounded"
+                  />
+                  {file && (
+                    <div className="relative inline-block mt-2">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewImage(index)}
+                        className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      >
+                        ✖
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+  
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              Save Changes
+            </button>
+          </form>
+        </div>
+      </main>
+  
+      <Footer />
+    </div>
+  );  
 }

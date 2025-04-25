@@ -25,7 +25,7 @@ export default function AddItemForm() {
 
   const [name, setName] = useState("");
   const [imageInputs, setImageInputs] = useState([null]);
-  const [fileInputRefs, setFileInputRefs] = useState([useRef(null)]);
+  const fileInputRefs = useRef([]);
   const [description, setDescription] = useState("");
   const [isSeasonal, setIsSeasonal] = useState(false);
   const [season, setSeason] = useState("Winter");
@@ -33,6 +33,12 @@ export default function AddItemForm() {
 
   const [suggestedMatch, setSuggestedMatch] = useState(null);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+
+  useEffect(() => {
+    if (imageInputs.length === 0 || imageInputs.every((f) => f !== null)) {
+      setImageInputs((prev) => [...prev, null]);
+    }
+  }, [imageInputs]);  
 
   const checkForSimilarProduct = async (inputName) => {
     setCheckingDuplicates(true);
@@ -55,36 +61,28 @@ export default function AddItemForm() {
   };
 
   const handleImageChange = (index, file) => {
-    const updated = [...imageInputs];
-    updated[index] = file;
-    setImageInputs(updated);
-  
-    if (updated.every((f) => f !== null)) {
-      setImageInputs([...updated, null]);
-      setFileInputRefs([...fileInputRefs, useRef(null)]); // add new ref
-    }
-  };  
+    const updatedInputs = [...imageInputs];
+    updatedInputs[index] = file;
+    setImageInputs(updatedInputs);
+  };    
 
   const handleRemoveImage = (index) => {
+    // Clear the file input field
+    if (fileInputRefs.current[index]) {
+      fileInputRefs.current[index].value = null;
+    }
+  
+    // Remove image and ref at index
     const updatedInputs = [...imageInputs];
-    const updatedRefs = [...fileInputRefs];
-    if (fileInputRefs[index]?.current) {
-      fileInputRefs[index].current.value = null;
-    }    
-  
     updatedInputs.splice(index, 1);
-    updatedRefs.splice(index, 1);
+    fileInputRefs.current.splice(index, 1);
   
-    setImageInputs(
-      updatedInputs.length === 0 || updatedInputs.every((f) => f !== null)
-        ? [...updatedInputs, null]
-        : updatedInputs
-    );
-    setFileInputRefs(
-      updatedRefs.length === 0 || updatedRefs.every((r) => r !== null)
-        ? [...updatedRefs, useRef(null)]
-        : updatedRefs
-    );
+    // If all are filled, add a new empty slot
+    if (updatedInputs.length === 0 || updatedInputs.every((f) => f !== null)) {
+      updatedInputs.push(null);
+    }
+  
+    setImageInputs(updatedInputs);
   };  
 
 const moveImage = (fromIndex, toIndex) => {
@@ -258,7 +256,7 @@ const moveImage = (fromIndex, toIndex) => {
                     <input
                       type="file"
                       accept="image/*"
-                      ref={fileInputRefs[index]}
+                      ref={(el) => (fileInputRefs.current[index] = el)}
                       onChange={(e) => handleImageChange(index, e.target.files[0])}
                       className="w-full p-2 border rounded"
                     />
