@@ -170,6 +170,60 @@ export default function RecipeDetailPage() {
           </div>
         )}
 
+<div className="flex gap-3 mt-2">
+          {user?.uid === recipe.userId && (
+            <button
+              onClick={() => (window.location.href = `/edit-recipe/${id}`)}
+              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Edit Recipe
+            </button>
+          )}
+
+          {isAdmin && (
+            <button
+            onClick={async () => {
+              if (!confirm("Are you sure you want to delete this recipe?")) return;
+            
+              try {
+                const { ref, deleteObject } = await import("firebase/storage");
+                const { storage } = await import("./firebase");
+            
+                // 1. Delete all recipe images
+                if (recipe.images?.length > 0) {
+                  for (const url of recipe.images) {
+                    const path = decodeURIComponent(
+                      new URL(url).pathname.split("/o/")[1].split("?")[0]
+                    );
+                    await deleteObject(ref(storage, path));
+                  }
+                }
+            
+                // 2. Delete all comments in subcollection
+                const commentsRef = collection(db, "recipes", id, "comments");
+                const commentSnap = await getDocs(commentsRef);
+                const commentDeletePromises = commentSnap.docs.map((docSnap) =>
+                  deleteDoc(docSnap.ref)
+                );
+                await Promise.all(commentDeletePromises);
+            
+                // 3. Delete the main recipe document
+                await deleteDoc(doc(db, "recipes", id));
+            
+                alert("Recipe and all related data deleted.");
+                window.location.href = "/recipes";
+              } catch (err) {
+                console.error("Failed to delete everything:", err);
+                alert("Failed to delete recipe.");
+              }
+            }}            
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Delete Recipe
+            </button>
+          )}
+        </div>
+
         {/* Comments Section */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Comments</h2>

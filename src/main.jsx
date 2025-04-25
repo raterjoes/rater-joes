@@ -18,6 +18,7 @@ import SubmitRecipePage from "./SubmitRecipePage";
 import RecipesPage from "./RecipesPage";
 import PendingRecipes from "./PendingRecipes";
 import RecipeDetailPage from "./RecipeDetailPage";
+import EditRecipeForm from "./EditRecipeForm.jsx";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -39,6 +40,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/recipes" element={<RecipesPage />} />
           <Route path="/pending-recipes" element={<PendingRecipes />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          <Route path="/edit-recipe/:id" element={<EditRecipeForm />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
