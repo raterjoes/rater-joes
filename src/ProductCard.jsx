@@ -30,7 +30,7 @@ export default function ProductCard({
   return (
     <Link
       to={`/products/${productId}`}
-      className="relative block bg-white rounded-md shadow p-2 hover:shadow-md transition text-xs"
+      className="relative block bg-white rounded-md shadow p-2 transform hover:scale-105 hover:shadow-xl hover:ring-1 hover:ring-rose-300 transition-all duration-300 text-xs"
     >
       {seasonal && season && (
         <span
