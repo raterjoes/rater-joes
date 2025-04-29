@@ -46,6 +46,14 @@ export default function ProductPage() {
   const [reviewLightboxIndex, setReviewLightboxIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const fetchProduct = async () => {
+    const docRef = doc(db, "products", id);
+    const snapshot = await getDoc(docRef);
+    if (snapshot.exists()) {
+      setProduct({ id: snapshot.id, ...snapshot.data() });
+    }
+  };  
+
   const handleReviewSubmit = async (review) => {
     if (!user) return;
 
@@ -162,14 +170,6 @@ export default function ProductPage() {
   }, [user]);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      const docRef = doc(db, "products", id);
-      const snapshot = await getDoc(docRef);
-      if (snapshot.exists()) {
-        setProduct({ id: snapshot.id, ...snapshot.data() });
-      }
-    };
-
     fetchProduct();
 
     const q = query(collection(db, "reviews"), where("productId", "==", id));
@@ -343,11 +343,12 @@ export default function ProductPage() {
             <EditProductForm
               product={product}
               onCancel={() => setEditing(false)}
-              onSave={() => {
+              onSave={async () => {
                 setEditing(false);
                 setEditSuccess(true);
+                await fetchProduct(); // ⬅️ refetch product data
                 setTimeout(() => setEditSuccess(false), 4000);
-              }}
+              }}              
             />
           ) : showLoginMessage ? (
             <p className="text-sm text-red-600 italic mb-6">
