@@ -16,6 +16,8 @@ function EditProductForm({ product, onCancel, onSave }) {
   const [isSeasonal, setIsSeasonal] = useState(product.seasonal || false);
   const [season, setSeason] = useState(product.season || "Winter");
 
+  const [loading, setLoading] = useState(false); // ✅ Add loading state
+
   const handleImageRemove = (urlToRemove) => {
     setExistingImages((prev) => prev.filter((url) => url !== urlToRemove));
   };
@@ -53,10 +55,11 @@ function EditProductForm({ product, onCancel, onSave }) {
     const [moved] = updated.splice(fromIndex, 1);
     updated.splice(toIndex, 0, moved);
     setExistingImages(updated);
-  };  
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // ✅ Start loading
 
     try {
       const uploadedImageUrls = [];
@@ -88,13 +91,21 @@ function EditProductForm({ product, onCancel, onSave }) {
 
       onSave("✅ Edit submitted for admin review.");
     } catch (err) {
+      console.error("Error submitting edit:", err);
       alert("Error submitting edit");
-      console.error(err);
+    } finally {
+      setLoading(false); // ✅ Always stop loading
     }
   };
 
-  return (
+  return loading ? (
+    <div className="flex flex-col items-center justify-center mt-10 space-y-2 text-gray-700">
+      <div className="text-4xl animate-spin-slow">🛒</div>
+      <p className="text-lg font-semibold">Uploading your edit...</p>
+    </div>
+  ) : (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+      {/* Form content stays here! */}
       <input
         type="text"
         value={name}
@@ -134,7 +145,6 @@ function EditProductForm({ product, onCancel, onSave }) {
                 ✖
               </button>
 
-              {/* Reorder buttons */}
               <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
                 {index > 0 && (
                   <button
@@ -160,10 +170,8 @@ function EditProductForm({ product, onCancel, onSave }) {
         </div>
       )}
 
-      {/* New image uploads + reorder */}
+      {/* New image uploads */}
       {newImageFiles.map((file, index) => {
-        const validCount = newImageFiles.filter(Boolean).length;
-
         const showAddLabel =
           newImageFiles[index] === null &&
           (index > 0
