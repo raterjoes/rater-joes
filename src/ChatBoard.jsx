@@ -22,7 +22,7 @@ import { db, storage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import chatboardImg from "./assets/chatboard2.jpg";
+import chatboardImg from "./assets/chatboard2.webp";
 import { Link, useSearchParams } from "react-router-dom";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";

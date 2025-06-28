@@ -8,11 +8,11 @@ import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 
 // 🌸 Season Images
-import winterImg from "./assets/winter.jpg";
-import springImg from "./assets/spring2.jpg";
-import summerImg from "./assets/summer.jpg";
-import fallImg from "./assets/fall.jpg";
-import otherseasonsImg from "./assets/otherseasons2.jpg"
+import winterImg from "./assets/winter.webp";
+import springImg from "./assets/spring2.webp";
+import summerImg from "./assets/summer.webp";
+import fallImg from "./assets/fall.webp";
+import otherseasonsImg from "./assets/otherseasons2.webp"
 
 const seasonImages = {
   Winter: winterImg,

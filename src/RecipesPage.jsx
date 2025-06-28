@@ -4,8 +4,8 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import recipesHeader from "./assets/recipes-header.jpg";
-import recipesFooter from "./assets/recipes-footer.jpg"
+import recipesHeader from "./assets/recipes-header.webp";
+import recipesFooter from "./assets/recipes-footer.webp"
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState([]);

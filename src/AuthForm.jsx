@@ -7,22 +7,25 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 
 export default function AuthForm() {
-  const { user, login, signup, logout } = useAuth();
+  const { user, login, signup, logout, resetPassword, sendVerificationEmail } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState("login");
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   const navigate = useNavigate();
   const [nickname, setNickname] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
     try {
       if (mode === "login") {
         await login(email, password);
-      } else {
+      } else if (mode === "signup") {
         await signup(email, password);
 
         // ✅ Save nickname to Firestore under /users/{uid}
@@ -32,6 +35,20 @@ export default function AuthForm() {
           nickname: nickname || null,
           createdAt: serverTimestamp(),
         });
+
+        // Send verification email
+        await sendVerificationEmail();
+        setIsVerifying(true);
+        setSuccess("Account created! Please check your email to verify your account.");
+        setEmail("");
+        setPassword("");
+        setNickname("");
+        return;
+      } else if (mode === "reset") {
+        await resetPassword(email);
+        setSuccess("Password reset email sent! Check your inbox.");
+        setEmail("");
+        return;
       }
 
       setEmail("");
@@ -43,13 +60,64 @@ export default function AuthForm() {
     }
   };
 
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setError(null);
+    setSuccess(null);
+    setIsVerifying(false);
+    setEmail("");
+    setPassword("");
+    setNickname("");
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await sendVerificationEmail();
+      setSuccess("Verification email sent again! Check your inbox.");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // Show verification message if user is not verified
+  if (user && !user.emailVerified && !isVerifying) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow">
+          <div className="bg-white p-6 shadow rounded max-w-md mx-auto mt-6">
+            <h2 className="text-xl font-bold text-center mb-4">Email Verification Required</h2>
+            <p className="text-gray-600 mb-4">
+              Please check your email ({user.email}) and click the verification link to complete your registration.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={handleResendVerification}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Resend Verification Email
+              </button>
+              <button
+                onClick={logout}
+                className="w-full px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
 
       <main className="flex-grow">
         <div className="bg-white p-4 shadow rounded max-w-sm mx-auto mt-6">
-          {user ? (
+          {user && user.emailVerified ? (
             <div className="text-center">
               <p className="mb-4">Welcome, {user.email}</p>
               <button
@@ -62,10 +130,11 @@ export default function AuthForm() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <h2 className="text-xl font-bold text-center">
-                {mode === "login" ? "Log In" : "Sign Up"}
+                {mode === "login" ? "Log In" : mode === "signup" ? "Sign Up" : "Reset Password"}
               </h2>
 
               {error && <p className="text-red-600 text-sm">{error}</p>}
+              {success && <p className="text-green-600 text-sm">{success}</p>}
 
               <input
                 type="email"
@@ -76,14 +145,16 @@ export default function AuthForm() {
                 required
               />
 
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full p-2 border rounded"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              {mode !== "reset" && (
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="w-full p-2 border rounded"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              )}
 
               {mode === "signup" && (
                 <input
@@ -97,20 +168,56 @@ export default function AuthForm() {
               )}
 
               <button className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                {mode === "login" ? "Log In" : "Create Account"}
+                {mode === "login" ? "Log In" : mode === "signup" ? "Create Account" : "Send Reset Email"}
               </button>
 
+              {mode === "login" && (
+                <p className="text-sm text-center">
+                  <button
+                    type="button"
+                    className="text-blue-600 underline"
+                    onClick={() => handleModeChange("reset")}
+                  >
+                    Forgot Password?
+                  </button>
+                </p>
+              )}
+
               <p className="text-sm text-center">
-                {mode === "login" ? "New here?" : "Already have an account?"}{" "}
-                <button
-                  type="button"
-                  className="text-blue-600 underline"
-                  onClick={() =>
-                    setMode((prev) => (prev === "login" ? "signup" : "login"))
-                  }
-                >
-                  {mode === "login" ? "Sign Up" : "Log In"}
-                </button>
+                {mode === "login" ? (
+                  <>
+                    New here?{" "}
+                    <button
+                      type="button"
+                      className="text-blue-600 underline"
+                      onClick={() => handleModeChange("signup")}
+                    >
+                      Sign Up
+                    </button>
+                  </>
+                ) : mode === "signup" ? (
+                  <>
+                    Already have an account?{" "}
+                    <button
+                      type="button"
+                      className="text-blue-600 underline"
+                      onClick={() => handleModeChange("login")}
+                    >
+                      Log In
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Remember your password?{" "}
+                    <button
+                      type="button"
+                      className="text-blue-600 underline"
+                      onClick={() => handleModeChange("login")}
+                    >
+                      Log In
+                    </button>
+                  </>
+                )}
               </p>
             </form>
           )}

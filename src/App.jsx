@@ -26,7 +26,7 @@ import categories from "./categories";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Contact from "./Contact";
-import groceriesImage from "./assets/groceries.jpg";
+import groceriesImage from "./assets/groceries.webp";
 import ProductCard from "./ProductCard";
 import NewActivityWindow from "./NewActivityWindow";
 import usePageTracking from "./usePageTracking";
