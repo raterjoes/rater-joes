@@ -224,174 +224,176 @@ const moveImage = (fromIndex, toIndex) => {
           <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded">
             <h2 className="text-2xl font-bold mb-4">Add a New Product</h2>
 
-            {/* Only show suggestion area and reserve space if checking or suggestion exists */}
-            {(checkingDuplicates || suggestedMatch) && (
-              <div style={{ minHeight: '40px' }}>
-                {checkingDuplicates && (
-                  <p className="text-sm text-gray-500 mb-2">
-                    Checking for similar items...
-                  </p>
-                )}
-
-                {suggestedMatch && (
-                  <div className="bg-yellow-100 border border-yellow-400 p-3 rounded text-sm mb-2">
-                    <p className="font-semibold mb-1">Did you mean this item?</p>
-                    <p>
-                      <strong>{suggestedMatch.name}</strong>
-                    </p>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {suggestedMatch.description}
-                    </p>
-                    <div className="flex gap-4">
-                      <button
-                        type="button"
-                        className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
-                        onClick={() => navigate(`/products/${suggestedMatch.id}`)}
-                      >
-                        Yes, that's it
-                      </button>
-                      <button
-                        type="button"
-                        className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded"
-                        onClick={() => setSuggestedMatch(null)}
-                      >
-                        No, continue adding
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <input
-              type="text"
-              placeholder="Product Name"
-              className="w-full p-2 border rounded mt-4"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-2 border rounded mt-2"
-            >
-              {categories.map((cat) => (
-                <option key={cat}>{cat}</option>
-              ))}
-            </select>
-
-            {imageInputs.map((file, index) => {
-              const isNextEmptyInput =
-                index > 0 &&
-                imageInputs[index] === null &&
-                imageInputs[index - 1] !== null;
-
-              return (
-                <div key={index} className="relative mt-2">
-                  {isNextEmptyInput && (
-                    <p className="text-sm font-medium text-gray-700 mb-1">
-                      Add another image?
+            <form onSubmit={handleSubmit}>
+              {/* Only show suggestion area and reserve space if checking or suggestion exists */}
+              {(checkingDuplicates || suggestedMatch) && (
+                <div style={{ minHeight: '40px' }}>
+                  {checkingDuplicates && (
+                    <p className="text-sm text-gray-500 mb-2">
+                      Checking for similar items...
                     </p>
                   )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={(el) => (fileInputRefs.current[index] = el)}
-                    onChange={(e) =>
-                      handleImageChange(index, e.target.files[0])
-                    }
-                    className="w-full p-2 border rounded"
-                  />
-                  {file && (
-                    <div className="relative inline-block mt-2 mr-2">
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Preview ${index + 1}`}
-                        className="w-24 h-24 object-cover rounded border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(index)}
-                        className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                      >
-                        ✖
-                      </button>
 
-                      {/* Reorder buttons */}
-                      <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
-                        {index > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => moveImage(index, index - 1)}
-                            className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
-                          >
-                            ↑
-                          </button>
-                        )}
-                        {index < imageInputs.length - 2 && (
-                          <button
-                            type="button"
-                            onClick={() => moveImage(index, index + 1)}
-                            className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
-                          >
-                            ↓
-                          </button>
-                        )}
+                  {suggestedMatch && (
+                    <div className="bg-yellow-100 border border-yellow-400 p-3 rounded text-sm mb-2">
+                      <p className="font-semibold mb-1">Did you mean this item?</p>
+                      <p>
+                        <strong>{suggestedMatch.name}</strong>
+                      </p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {suggestedMatch.description}
+                      </p>
+                      <div className="flex gap-4">
+                        <button
+                          type="button"
+                          className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
+                          onClick={() => navigate(`/products/${suggestedMatch.id}`)}
+                        >
+                          Yes, that's it
+                        </button>
+                        <button
+                          type="button"
+                          className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded"
+                          onClick={() => setSuggestedMatch(null)}
+                        >
+                          No, continue adding
+                        </button>
                       </div>
                     </div>
                   )}
                 </div>
-              );
-            })}
+              )}
 
-            <textarea
-              placeholder="Description"
-              className="w-full p-2 border rounded mt-2"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-
-            <div className="flex items-center gap-2">
               <input
-                type="checkbox"
-                id="seasonal"
-                checked={isSeasonal}
-                onChange={(e) => setIsSeasonal(e.target.checked)}
+                type="text"
+                placeholder="Product Name"
+                className="w-full p-2 border rounded mt-4"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
               />
-              <label htmlFor="seasonal" className="text-sm">
-                Limited/Seasonal?
-              </label>
-            </div>
 
-            {isSeasonal && (
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full p-2 border rounded mt-2"
+              >
+                {categories.map((cat) => (
+                  <option key={cat}>{cat}</option>
+                ))}
+              </select>
+
+              {imageInputs.map((file, index) => {
+                const isNextEmptyInput =
+                  index > 0 &&
+                  imageInputs[index] === null &&
+                  imageInputs[index - 1] !== null;
+
+                return (
+                  <div key={index} className="relative mt-2">
+                    {isNextEmptyInput && (
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        Add another image?
+                      </p>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={(el) => (fileInputRefs.current[index] = el)}
+                      onChange={(e) =>
+                        handleImageChange(index, e.target.files[0])
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                    {file && (
+                      <div className="relative inline-block mt-2 mr-2">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${index + 1}`}
+                          className="w-24 h-24 object-cover rounded border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        >
+                          ✖
+                        </button>
+
+                        {/* Reorder buttons */}
+                        <div className="absolute bottom-[-10px] right-0 flex gap-1 text-xs">
+                          {index > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => moveImage(index, index - 1)}
+                              className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              ↑
+                            </button>
+                          )}
+                          {index < imageInputs.length - 2 && (
+                            <button
+                              type="button"
+                              onClick={() => moveImage(index, index + 1)}
+                              className="px-1 py-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              ↓
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              <textarea
+                placeholder="Description"
+                className="w-full p-2 border rounded mt-2"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+
               <div className="flex items-center gap-2">
-                <label htmlFor="season" className="text-sm font-medium">
-                  Season:
+                <input
+                  type="checkbox"
+                  id="seasonal"
+                  checked={isSeasonal}
+                  onChange={(e) => setIsSeasonal(e.target.checked)}
+                />
+                <label htmlFor="seasonal" className="text-sm">
+                  Limited/Seasonal?
                 </label>
-                <select
-                  id="season"
-                  value={season}
-                  onChange={(e) => setSeason(e.target.value)}
-                  className="flex-grow p-2 border rounded"
-                >
-                  <option>Winter</option>
-                  <option>Spring</option>
-                  <option>Summer</option>
-                  <option>Fall</option>
-                </select>
               </div>
-            )}
 
-            <button
-              type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 mt-2"
-              disabled={loading}
-            >
-              Submit Product
-            </button>
+              {isSeasonal && (
+                <div className="flex items-center gap-2">
+                  <label htmlFor="season" className="text-sm font-medium">
+                    Season:
+                  </label>
+                  <select
+                    id="season"
+                    value={season}
+                    onChange={(e) => setSeason(e.target.value)}
+                    className="flex-grow p-2 border rounded"
+                  >
+                    <option>Winter</option>
+                    <option>Spring</option>
+                    <option>Summer</option>
+                    <option>Fall</option>
+                  </select>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 mt-4"
+                disabled={loading}
+              >
+                {loading ? "Submitting..." : "Submit Product"}
+              </button>
+            </form>
           </div>
         )}
       </main>
