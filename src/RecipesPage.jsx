@@ -80,24 +80,22 @@ export default function RecipesPage() {
           className="w-full max-h-40 object-cover rounded shadow mb-2"
           alt="Recipes header"
         />
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+          <div className="flex-1 sm:max-w-xl">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by recipe name or product..."
+              className="w-full p-2 border border-gray-300 rounded shadow-sm"
+            />
+          </div>
           <Link
             to="/submit-recipe"
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap"
           >
             + Submit Recipe
           </Link>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-4">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by recipe name or product..."
-            className="w-full sm:w-[34rem] p-2 border border-gray-300 rounded shadow-sm"
-          />
         </div>
 
         {/* Filter Heading and Clear Button */}
