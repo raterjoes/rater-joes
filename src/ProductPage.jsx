@@ -16,7 +16,6 @@ import {
 import { ref as storageRef, deleteObject } from "firebase/storage";
 import { useAuth } from "./AuthContext";
 import ReviewForm from "./ReviewForm";
-import EditProductForm from "./EditProductForm";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Lightbox from "yet-another-react-lightbox";
@@ -37,8 +36,6 @@ export default function ProductPage() {
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [sortOption, setSortOption] = useState("newest");
-  const [editing, setEditing] = useState(false);
-  const [editSuccess, setEditSuccess] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -292,13 +289,12 @@ export default function ProductPage() {
                 <button
                   onClick={() => {
                     if (user) {
-                      setEditing(true);
-                      setShowLoginMessage(false);
+                      navigate(`/edit-product/${id}`);
                     } else {
                       setShowLoginMessage(true);
                     }
                   }}
-                  className="block text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition"
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   ✏️ Edit Product
                 </button>
@@ -373,30 +369,13 @@ export default function ProductPage() {
             </div>
           </div>
 
-          {editing ? (
-            <EditProductForm
-              product={product}
-              onCancel={() => setEditing(false)}
-              onSave={async () => {
-                setEditing(false);
-                setEditSuccess(true);
-                await fetchProduct(); // ⬅️ refetch product data
-                setTimeout(() => setEditSuccess(false), 4000);
-              }}              
-            />
-          ) : showLoginMessage ? (
+          {showLoginMessage ? (
             <p className="text-sm text-red-600 italic mb-6">
               You must be logged in to edit this product.
             </p>
           ) : (
             <p className="text-lg text-gray-700 leading-relaxed mb-2">
               {product.description}
-            </p>
-          )}
-
-          {editSuccess && (
-            <p className="text-green-700 text-sm bg-green-100 p-2 rounded shadow inline-block mb-6">
-              ✅ Edit submitted for admin review.
             </p>
           )}
 
