@@ -5,7 +5,7 @@
 // - Nickname lookup removed from homepage
 // - Updated CategorySection to preview first 6 products and show a "View All" button
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   collection,
   addDoc,
@@ -35,6 +35,8 @@ export default function App() {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const debounceTimeout = useRef();
 
   usePageTracking();
 
@@ -51,6 +53,15 @@ export default function App() {
     };
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    // Debounce search input
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(debounceTimeout.current);
+  }, [searchQuery]);
 
   const handleReviewSubmit = async (productId, review) => {
     if (!user) return;
@@ -94,7 +105,7 @@ export default function App() {
   };
 
   const filtered = products.filter((p) => {
-    const q = searchQuery.toLowerCase();
+    const q = debouncedQuery.toLowerCase();
     return (
       p.name.toLowerCase().includes(q) ||
       p.description.toLowerCase().includes(q) ||
