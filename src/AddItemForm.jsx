@@ -13,6 +13,7 @@ import { getStorage } from "./firebase";
 import categories from "./categories";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { addMonths } from 'date-fns';
 
 export default function AddItemForm() {
   const { user } = useAuth();
@@ -37,6 +38,8 @@ export default function AddItemForm() {
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
   const [loading, setLoading] = useState(false);
+
+  const [isNew, setIsNew] = useState(false);
 
   useEffect(() => {
     if (imageInputs.length === 0 || imageInputs.every((f) => f !== null)) {
@@ -153,12 +156,14 @@ const moveImage = (fromIndex, toIndex) => {
         description,
         seasonal: isSeasonal,
         season: isSeasonal ? season : null,
+        newUntil: isNew ? addMonths(new Date(), 6).toISOString() : null,
         createdAt: serverTimestamp(),
         addedBy: user.email,
         approved: false
       });
 
       setSubmitted(true);
+      setIsNew(false);
     } catch (err) {
       console.error("❌ Error submitting product:", err);
       alert("Error adding product");
@@ -214,6 +219,7 @@ const moveImage = (fromIndex, toIndex) => {
                 setSeason("Winter");
                 setSuggestedMatch(null);
                 setCheckingDuplicates(false);
+                setIsNew(false);
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
@@ -385,6 +391,18 @@ const moveImage = (fromIndex, toIndex) => {
                   </select>
                 </div>
               )}
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="new"
+                  checked={isNew}
+                  onChange={(e) => setIsNew(e.target.checked)}
+                />
+                <label htmlFor="new" className="text-sm">
+                  New Item?
+                </label>
+              </div>
 
               <button
                 type="submit"

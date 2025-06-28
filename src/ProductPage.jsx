@@ -46,6 +46,8 @@ export default function ProductPage() {
   const [reviewLightboxIndex, setReviewLightboxIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const storage = getStorage();
+
   const fetchProduct = async () => {
     const docRef = doc(db, "products", id);
     const snapshot = await getDoc(docRef);
@@ -123,9 +125,17 @@ export default function ProductPage() {
       // 1. Delete product images
       const allImages = [...(product.images || []), ...(product.image ? [product.image] : [])];
       for (const url of allImages) {
-        const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
-        const imgRef = storageRef(storage, path);
-        await deleteObject(imgRef).catch(() => {});
+        if (!url) continue; // skip undefined/null
+        try {
+          // Defensive: only try to extract path if url is a string and contains '/o/'
+          if (typeof url === 'string' && url.includes('/o/')) {
+            const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+            const imgRef = storageRef(storage, path);
+            await deleteObject(imgRef).catch(() => {});
+          }
+        } catch (err) {
+          console.warn("Failed to parse/delete image url:", url, err);
+        }
       }
   
       // 2. Delete all reviews and their images
@@ -224,6 +234,14 @@ export default function ProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-8">
             <div>
               <h1 className="text-4xl font-serif font-bold text-gray-800 mb-2">
+                {/* New badge */}
+                {product.newUntil && new Date() < new Date(product.newUntil) && (
+                  <div className="mb-2">
+                    <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full shadow-sm bg-pink-100 text-pink-700">
+                      🆕 New
+                    </span>
+                  </div>
+                )}
                 {product.name}
               </h1>
               <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
@@ -237,6 +255,7 @@ export default function ProductPage() {
               ) : (
                 <p className="text-gray-400 mb-2">Not yet rated</p>
               )}
+              {/* Seasonal badge */}
               {product.seasonal && product.season && (() => {
                 const seasonStyles = {
                   Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },

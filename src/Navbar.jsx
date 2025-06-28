@@ -27,9 +27,11 @@ export default function Navbar() {
     const checkAdmin = async () => {
       if (user) {
         try {
-          const snapshot = await getDocs(collection(db, "admins"));
-          const emails = snapshot.docs.map((doc) => doc.data().email);
-          setIsAdmin(emails.includes(user.email));
+          console.log("Checking admin status for:", user.email);
+          const adminDoc = await getDoc(doc(db, "admins", user.email));
+          const isAdminUser = adminDoc.exists();
+          console.log("Admin document exists:", isAdminUser);
+          setIsAdmin(isAdminUser);
         } catch (err) {
           console.error("Error checking admin status:", err);
           setIsAdmin(false);
@@ -98,12 +100,13 @@ export default function Navbar() {
                     Pending Recipes
                   </Link>
                 </div>
-            </div>
+              </div>
             )}
 
             <Link to="/contact" className="hover:underline">Contact</Link>
             <Link to="/chat" className="hover:underline">Chat</Link>
             <Link to="/seasonal" className="hover:underline">Seasonal</Link>
+            <Link to="/new-arrivals" className="hover:underline">New Arrivals</Link>
             <Link to="/categories" className="hover:underline">Categories</Link>
             <Link to="/recipes" className="hover:underline">Recipes</Link>
 
@@ -170,6 +173,7 @@ export default function Navbar() {
         <Link to="/contact" className="block hover:underline">Contact</Link>
         <Link to="/chat" className="block hover:underline">Chat</Link>
         <Link to="/seasonal" className="block hover:underline">Seasonal</Link>
+        <Link to="/new-arrivals" className="block hover:underline">New Arrivals</Link>
         <Link to="/categories" className="block hover:underline">Categories</Link>
         <Link to="/recipes" className="block hover:underline">Recipes</Link>
         {user && (

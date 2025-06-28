@@ -21,11 +21,12 @@ const RecipesPage = lazy(() => import('./RecipesPage'));
 const PendingRecipes = lazy(() => import('./PendingRecipes'));
 const RecipeDetailPage = lazy(() => import('./RecipeDetailPage'));
 const EditRecipeForm = lazy(() => import('./EditRecipeForm.jsx'));
+const NewArrivals = lazy(() => import('./NewArrivals.jsx'));
 
 function Loader() {
   return (
     <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-700 mx-auto mb-4"></div>
+      <div className="text-4xl animate-spin-slow mx-auto mb-4">🛒</div>
       <span className="text-rose-700 font-semibold">Loading...</span>
     </div>
   );
@@ -45,6 +46,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/pending-products" element={<PendingProducts />} />
             <Route path="/chat" element={<ChatBoard />} />
             <Route path="/seasonal" element={<Seasonal />} />
+            <Route path="/new-arrivals" element={<NewArrivals />} />
             <Route path="/pending-review-images" element={<PendingReviewImages />} />
             <Route path="/category/:categoryName" element={<CategoryPage />} />
             <Route path="/categories" element={<AllCategoriesPage />} />

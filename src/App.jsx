@@ -267,6 +267,7 @@ function CategorySection({ id, title, products, onReviewSubmit, user }) {
                 user={user}
                 seasonal={product.seasonal}
                 season={product.season}
+                newUntil={product.newUntil}
               />
             ))}
           </div>

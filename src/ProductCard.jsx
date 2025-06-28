@@ -9,6 +9,7 @@ export default function ProductCard({
   reviews = [],
   seasonal,
   season,
+  newUntil,
 }) {
   const averageRating = reviews.length
     ? (
@@ -27,11 +28,18 @@ export default function ProductCard({
 
   const style = seasonStyles[season] || {};
 
+  const isNew = newUntil && new Date() < new Date(newUntil);
+
   return (
     <Link
       to={`/products/${productId}`}
       className="relative block bg-white rounded-md shadow p-2 transform hover:scale-105 hover:shadow-xl hover:ring-1 hover:ring-rose-300 transition-all duration-300 text-xs"
     >
+      {isNew && (
+        <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm bg-blue-100 text-blue-700 z-10">
+          🆕 New
+        </span>
+      )}
       {seasonal && season && (
         <span
           className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${style.bg} ${style.text}`}

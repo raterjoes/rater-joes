@@ -81,7 +81,6 @@ export default function RecipesPage() {
           alt="Recipes header"
         />
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold">Recipes</h1>
           <Link
             to="/submit-recipe"
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"

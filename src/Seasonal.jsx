@@ -62,12 +62,14 @@ export default function Seasonal() {
           src={seasonImages[currentSeason]}
           alt={currentSeason}
           className="w-full max-h-64 object-cover rounded shadow mb-6"
+          style={{ objectPosition: 'center 20%' }}
         />
 
         <h2 className="text-2xl font-semibold mb-4">{currentSeason}</h2>
         <ProductGrid products={seasonalProducts[currentSeason] || []} />
 
-        <h2 className="text-3xl font-bold text-center mt-16 mb-6">Other Seasons</h2>
+        {/* Add gap before other seasons banner */}
+        <div className="mb-10"></div>
 
         <img
           src={otherseasonsImg}
