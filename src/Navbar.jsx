@@ -27,8 +27,9 @@ export default function Navbar() {
     const checkAdmin = async () => {
       if (user) {
         try {
-          const adminDoc = await getDoc(doc(db, "admins", user.uid));
-          setIsAdmin(adminDoc.exists());
+          const snapshot = await getDocs(collection(db, "admins"));
+          const emails = snapshot.docs.map((doc) => doc.data().email);
+          setIsAdmin(emails.includes(user.email));
         } catch (err) {
           console.error("Error checking admin status:", err);
           setIsAdmin(false);
@@ -63,7 +64,7 @@ export default function Navbar() {
     <header className="bg-rose-800/80 shadow px-4 py-4 relative z-20">
       <div className="w-full flex justify-between items-center">
         <Link to="/" className="text-xl font-bold text-white hover:underline">
-          Rater Joe’s
+          Rater Joe's
         </Link>
 
         <div className="flex items-center gap-4">
