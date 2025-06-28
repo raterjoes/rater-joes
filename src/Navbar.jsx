@@ -26,12 +26,16 @@ export default function Navbar() {
 
     const checkAdmin = async () => {
       if (user) {
-        const snapshot = await getDocs(collection(db, "admins"));
-        const adminEmails = snapshot.docs.map((doc) => doc.data().email);
-        setIsAdmin(adminEmails.includes(user.email));
+        try {
+          const adminDoc = await getDoc(doc(db, "admins", user.uid));
+          setIsAdmin(adminDoc.exists());
+        } catch (err) {
+          console.error("Error checking admin status:", err);
+          setIsAdmin(false);
+        }
       }
     };
-
+    
     fetchNickname();
     checkAdmin();
   }, [user]);

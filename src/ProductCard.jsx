@@ -6,7 +6,7 @@ export default function ProductCard({
   images,
   description,
   productId,
-  reviews,
+  reviews = [],
   seasonal,
   season,
 }) {

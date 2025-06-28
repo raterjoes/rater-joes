@@ -1,13 +1,19 @@
+// Updated App.jsx with performance improvements
+// - Replaced onSnapshot with getDocs for products
+// - Removed global reviews listener
+// - Reviews now load per ProductCard (recommended)
+// - Nickname lookup removed from homepage
+
 import { useState, useEffect } from "react";
 import {
   collection,
   addDoc,
-  onSnapshot,
   serverTimestamp,
   getDoc,
   doc,
   query,
-  where
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Link } from "react-router-dom";
@@ -15,8 +21,6 @@ import { ChevronDown } from "lucide-react";
 import "./index.css";
 
 import { useAuth } from "./AuthContext";
-import ReviewForm from "./ReviewForm";
-import ReviewList from "./ReviewList";
 import categories from "./categories";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -28,56 +32,23 @@ import usePageTracking from "./usePageTracking";
 
 export default function App() {
   const { user } = useAuth();
-  const [reviews, setReviews] = useState({});
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [nickname, setNickname] = useState(null);
-  
+
   usePageTracking();
-  
+
   useEffect(() => {
-    const fetchNickname = async () => {
-      if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setNickname(userDoc.data().nickname || null);
-        }
+    const loadProducts = async () => {
+      try {
+        const q = query(collection(db, "products"), where("approved", "==", true));
+        const snapshot = await getDocs(q);
+        const loaded = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setProducts(loaded);
+      } catch (err) {
+        console.error("Error loading products:", err);
       }
     };
-    fetchNickname();
-  }, [user]);
-
-  useEffect(() => {
-    const unsubscribe = onSnapshot(
-      query(collection(db, "products"), where("approved", "==", true)),
-      (snapshot) => {
-      const loaded = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setProducts(loaded);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "reviews"), (snapshot) => {
-      const all = {};
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const pid = data.productId;
-        if (!all[pid]) all[pid] = [];
-        all[pid].push({
-          text: data.text,
-          rating: data.rating,
-          userEmail: data.userEmail || null,
-          nickname: data.nickname || null,
-          createdAt: data.createdAt?.toDate()
-        });
-      });
-      setReviews(all);
-    });
-    return () => unsubscribe();
+    loadProducts();
   }, []);
 
   const handleReviewSubmit = async (productId, review) => {
@@ -106,15 +77,15 @@ export default function App() {
         rating,
         nickname: includeName ? nickname : null,
         userEmail: includeName ? userEmail : null,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
       if (window.gtag) {
         window.gtag("event", "submit_review", {
           category: "engagement",
           label: productId,
-          value: rating
+          value: rating,
         });
-      }      
+      }
     } catch (err) {
       console.error("Submit error:", err);
       alert("Failed to submit review.");
@@ -148,12 +119,12 @@ export default function App() {
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="bg-rose-800/80 w-[90%] sm:w-[70%] md:w-[60%] text-white text-center p-4 sm:p-6 rounded shadow-lg">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4">Explore Trader Joe's Reviews</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4">
+                Explore Trader Joe's Reviews
+              </h2>
               <p className="text-base sm:text-lg mb-3 sm:mb-4">
                 Find the top-rated products and share your own feedback with the community.
               </p>
-
-              {/* ✅ Conditional button */}
               {user ? (
                 <button
                   onClick={() => {
@@ -196,12 +167,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* Show on desktop/tablet only */}
         <div className="hidden sm:flex w-full max-w-5xl mx-auto px-4 mt-4 flex-wrap justify-center gap-3">
           {categories.map((cat) => {
             const catProducts = categorized[cat] || [];
             if (catProducts.length === 0) return null;
-
             return (
               <a
                 key={cat}
@@ -214,7 +183,6 @@ export default function App() {
           })}
         </div>
 
-        {/* Show only on mobile */}
         <div className="sm:hidden flex justify-center mt-4">
           <Link
             to="/categories"
@@ -233,14 +201,12 @@ export default function App() {
             categories.map((cat) => {
               const catProducts = categorized[cat] || [];
               if (catProducts.length === 0) return null;
-
               return (
                 <CategorySection
                   key={cat}
                   id={cat.toLowerCase().replace(/\s+/g, "-")}
                   title={cat}
                   products={catProducts}
-                  reviews={reviews}
                   onReviewSubmit={handleReviewSubmit}
                   user={user}
                 />
@@ -256,8 +222,7 @@ export default function App() {
   );
 }
 
-// ⬇️ Category Section
-function CategorySection({ id, title, products, reviews, onReviewSubmit, user }) {
+function CategorySection({ id, title, products, onReviewSubmit, user }) {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -280,7 +245,6 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
             isOpen ? "rotate-180" : "rotate-0"
           }`}
         />
-        {/* Or use: <ChevronDown className={isOpen ? "rotate-180" : ""} /> */}
       </div>
 
       <div
@@ -298,7 +262,6 @@ function CategorySection({ id, title, products, reviews, onReviewSubmit, user })
                 image={product.image}
                 images={product.images}
                 description={product.description}
-                reviews={reviews[product.id] || []}
                 onReviewSubmit={onReviewSubmit}
                 user={user}
                 seasonal={product.seasonal}
