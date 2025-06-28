@@ -3,6 +3,7 @@
 // - Removed global reviews listener
 // - Reviews now load per ProductCard (recommended)
 // - Nickname lookup removed from homepage
+// - Updated CategorySection to preview first 6 products and show a "View All" button
 
 import { useState, useEffect } from "react";
 import {
@@ -223,6 +224,7 @@ export default function App() {
 }
 
 function CategorySection({ id, title, products, onReviewSubmit, user }) {
+  const preview = products.slice(0, 6);
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -231,15 +233,7 @@ function CategorySection({ id, title, products, onReviewSubmit, user }) {
         className="flex justify-between items-center cursor-pointer mb-2"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-semibold">{title}</h2>
-          <Link
-            to={`/category/${encodeURIComponent(title)}`}
-            className="px-2 py-0.5 text-s rounded bg-rose-800 text-white hover:bg-rose-900"
-          >
-            View All
-          </Link>
-        </div>
+        <h2 className="text-2xl font-semibold">{title}</h2>
         <ChevronDown
           className={`w-5 h-5 text-gray-600 transition-transform duration-300 ${
             isOpen ? "rotate-180" : "rotate-0"
@@ -247,14 +241,10 @@ function CategorySection({ id, title, products, onReviewSubmit, user }) {
         />
       </div>
 
-      <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden ${
-          isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="pt-2 max-h-[20rem] overflow-y-auto pr-1">
+      {isOpen && (
+        <div className="transition-all duration-300 ease-in-out">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {products.map((product) => (
+            {preview.map((product) => (
               <ProductCard
                 key={product.id}
                 productId={product.id}
@@ -269,8 +259,16 @@ function CategorySection({ id, title, products, onReviewSubmit, user }) {
               />
             ))}
           </div>
+          <div className="mt-4 text-center">
+            <Link
+              to={`/category/${encodeURIComponent(title)}`}
+              className="inline-block px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900"
+            >
+              View All
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

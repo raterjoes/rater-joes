@@ -43,6 +43,7 @@ export default function ProductCard({
       <img
         src={displayImage}
         alt={name}
+        loading="lazy"
         className="w-full h-28 object-cover rounded mb-1"
       />
       <h3 className="text-lg font-semibold leading-tight">{name}</h3>
