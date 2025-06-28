@@ -66,11 +66,9 @@ export default function RecipeDetailPage() {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      if (user) {
-        const snapshot = await getDocs(collection(db, "admins"));
-        const emails = snapshot.docs.map((doc) => doc.data().email);
-        setIsAdmin(emails.includes(user.email));
-      }
+      if (!user) return;
+      const adminDoc = await getDoc(doc(db, "admins", user.email));
+      setIsAdmin(adminDoc.exists());
     };
     checkAdmin();
   }, [user]);

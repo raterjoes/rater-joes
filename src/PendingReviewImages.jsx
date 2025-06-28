@@ -34,10 +34,8 @@ export default function PendingReviewImages() {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) return;
-      const snapshot = await getDocs(collection(db, "admins"));
-      const emails = snapshot.docs.map((doc) => doc.data().email);
-      const admin = emails.includes(user.email);
-      setIsAdmin(admin);
+      const adminDoc = await getDoc(doc(db, "admins", user.email));
+      setIsAdmin(adminDoc.exists());
       setAdminCheckComplete(true);
     };
     checkAdminStatus();

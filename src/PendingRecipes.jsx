@@ -25,14 +25,13 @@ export default function PendingRecipes() {
   const [adminCheckComplete, setAdminCheckComplete] = useState(false);
 
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkAdminStatus = async () => {
       if (!user) return;
-      const snapshot = await getDocs(collection(db, "admins"));
-      const emails = snapshot.docs.map((doc) => doc.data().email);
-      setIsAdmin(emails.includes(user.email));
+      const adminDoc = await getDoc(doc(db, "admins", user.email));
+      setIsAdmin(adminDoc.exists());
       setAdminCheckComplete(true);
     };
-    checkAdmin();
+    checkAdminStatus();
   }, [user]);
 
   useEffect(() => {
