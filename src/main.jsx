@@ -22,6 +22,7 @@ const PendingRecipes = lazy(() => import('./PendingRecipes'));
 const RecipeDetailPage = lazy(() => import('./RecipeDetailPage'));
 const EditRecipeForm = lazy(() => import('./EditRecipeForm.jsx'));
 const NewArrivals = lazy(() => import('./NewArrivals.jsx'));
+const ProductNotFound = lazy(() => import('./ProductNotFound.jsx'));
 
 function Loader() {
   return (
@@ -55,6 +56,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/pending-recipes" element={<PendingRecipes />} />
             <Route path="/recipes/:id" element={<RecipeDetailPage />} />
             <Route path="/edit-recipe/:id" element={<EditRecipeForm />} />
+            <Route path="/products/:id/not-found" element={<ProductNotFound />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

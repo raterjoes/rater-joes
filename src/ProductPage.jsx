@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { db, getStorage } from "./firebase";
 import {
@@ -19,7 +19,6 @@ import ReviewForm from "./ReviewForm";
 import EditProductForm from "./EditProductForm";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { Link } from "react-router-dom";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
@@ -31,6 +30,8 @@ import "swiper/css/pagination";
 
 export default function ProductPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
@@ -49,10 +50,25 @@ export default function ProductPage() {
   const storage = getStorage();
 
   const fetchProduct = async () => {
-    const docRef = doc(db, "products", id);
-    const snapshot = await getDoc(docRef);
-    if (snapshot.exists()) {
-      setProduct({ id: snapshot.id, ...snapshot.data() });
+    try {
+      const docRef = doc(db, "products", id);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setProduct({ id: docSnap.id, ...docSnap.data() });
+      } else {
+        // Product doesn't exist, redirect to not found page
+        navigate(`/products/${id}/not-found`, { 
+          state: { fromRecipe: location.state?.fromRecipe } 
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      navigate(`/products/${id}/not-found`, { 
+        state: { fromRecipe: location.state?.fromRecipe } 
+      });
+      return;
     }
   };  
 

@@ -158,7 +158,11 @@ export default function RecipeDetailPage() {
                 const product = products.find((p) => p.id === id);
                 return (
                   <li key={id}>
-                    <Link to={`/products/${id}`} className="hover:underline">
+                    <Link 
+                      to={`/products/${id}`} 
+                      state={{ fromRecipe: `/recipes/${id}` }}
+                      className="hover:underline"
+                    >
                       {product?.name || "View Product"}
                     </Link>
                   </li>

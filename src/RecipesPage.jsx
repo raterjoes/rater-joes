@@ -162,6 +162,7 @@ export default function RecipesPage() {
                           <li key={id}>
                             <Link
                               to={`/products/${id}`}
+                              state={{ fromRecipe: `/recipes/${recipe.id}` }}
                               onClick={(e) => e.stopPropagation()}
                               className="text-blue-600 hover:underline"
                             >
