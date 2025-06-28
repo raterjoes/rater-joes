@@ -221,46 +221,49 @@ const moveImage = (fromIndex, toIndex) => {
           <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow rounded">
             <h2 className="text-2xl font-bold mb-4">Add a New Product</h2>
 
-            <div style={{ minHeight: '40px' }}>
-              {checkingDuplicates && (
-                <p className="text-sm text-gray-500 mb-2">
-                  Checking for similar items...
-                </p>
-              )}
+            {/* Only show suggestion area and reserve space if checking or suggestion exists */}
+            {(checkingDuplicates || suggestedMatch) && (
+              <div style={{ minHeight: '40px' }}>
+                {checkingDuplicates && (
+                  <p className="text-sm text-gray-500 mb-2">
+                    Checking for similar items...
+                  </p>
+                )}
 
-              {suggestedMatch && (
-                <div className="bg-yellow-100 border border-yellow-400 p-3 rounded text-sm mb-2">
-                  <p className="font-semibold mb-1">Did you mean this item?</p>
-                  <p>
-                    <strong>{suggestedMatch.name}</strong>
-                  </p>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {suggestedMatch.description}
-                  </p>
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
-                      onClick={() => navigate(`/products/${suggestedMatch.id}`)}
-                    >
-                      Yes, that's it
-                    </button>
-                    <button
-                      type="button"
-                      className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded"
-                      onClick={() => setSuggestedMatch(null)}
-                    >
-                      No, continue adding
-                    </button>
+                {suggestedMatch && (
+                  <div className="bg-yellow-100 border border-yellow-400 p-3 rounded text-sm mb-2">
+                    <p className="font-semibold mb-1">Did you mean this item?</p>
+                    <p>
+                      <strong>{suggestedMatch.name}</strong>
+                    </p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {suggestedMatch.description}
+                    </p>
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
+                        onClick={() => navigate(`/products/${suggestedMatch.id}`)}
+                      >
+                        Yes, that's it
+                      </button>
+                      <button
+                        type="button"
+                        className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded"
+                        onClick={() => setSuggestedMatch(null)}
+                      >
+                        No, continue adding
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             <input
               type="text"
               placeholder="Product Name"
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-2 border rounded mt-4"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
