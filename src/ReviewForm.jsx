@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
-import { db, storage } from "./firebase";
+import { db, getStorage } from "./firebase";
 import { useParams } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { ChevronDown } from "lucide-react";
@@ -71,6 +71,7 @@ export default function ReviewForm({ onSubmit }) {
       await Promise.all(
         imageFiles.map(async (file) => {
           const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+          const storage = await getStorage();
           const storageRef = ref(storage, `review-images/${uniqueName}-${file.name}`);
           await uploadBytes(storageRef, file);
           const url = await getDownloadURL(storageRef);

@@ -9,7 +9,7 @@ import {
 import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "./firebase";
+import { getStorage } from "./firebase";
 import categories from "./categories";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -120,6 +120,9 @@ const moveImage = (fromIndex, toIndex) => {
     setLoading(true);
 
     try {
+      // Get lazy-loaded storage
+      const storage = await getStorage();
+      
       // 🔥 Create upload tasks with original index attached
       const uploadTasks = imageInputs
         .map((file, index) => {

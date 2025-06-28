@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { db, storage } from "./firebase";
+import { db, getStorage } from "./firebase";
 import {
   collection,
   getDocs,
@@ -71,7 +71,7 @@ export default function SubmitRecipeForm() {
       .filter(Boolean)
       .map(async (file) => {
         const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-        const imageRef = ref(storage, `recipe-images/${uniqueSuffix}-${file.name}`);
+        const imageRef = ref(await getStorage(), `recipe-images/${uniqueSuffix}-${file.name}`);
         await uploadBytes(imageRef, file);
         const url = await getDownloadURL(imageRef);
         imageUrls.push(url);

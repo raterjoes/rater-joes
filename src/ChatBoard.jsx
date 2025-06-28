@@ -18,7 +18,7 @@ import {
   getDownloadURL,
   deleteObject
 } from "firebase/storage";
-import { db, storage } from "./firebase";
+import { db, getStorage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -181,7 +181,7 @@ export default function ChatBoard() {
     const uploadPromises = newPostImages
       .filter(Boolean)
       .map(async (file) => {
-        const imageRef = ref(storage, `chat-images/${Date.now()}-${file.name}`);
+        const imageRef = ref(await getStorage(), `chat-images/${Date.now()}-${file.name}`);
         await uploadBytes(imageRef, file);
         const url = await getDownloadURL(imageRef);
         imageUrls.push(url);
@@ -208,7 +208,7 @@ export default function ChatBoard() {
 
     let imageUrl = "";
     if (image) {
-      const imageRef = ref(storage, `chat-images/${Date.now()}-${image.name}`);
+      const imageRef = ref(await getStorage(), `chat-images/${Date.now()}-${image.name}`);
       await uploadBytes(imageRef, image);
       imageUrl = await getDownloadURL(imageRef);
     }
@@ -245,7 +245,7 @@ export default function ChatBoard() {
       for (const docSnap of commentsSnapshot.docs) {
         const data = docSnap.data();
         if (data.image) {
-          const imageRef = ref(storage, data.image);
+          const imageRef = ref(await getStorage(), data.image);
           await deleteObject(imageRef).catch(() => {});
         }
         await deleteDoc(docSnap.ref);
@@ -254,7 +254,7 @@ export default function ChatBoard() {
       // 🔁 Delete all images in the post
       if (Array.isArray(imageUrls)) {
         for (const url of imageUrls) {
-          const imageRef = ref(storage, url);
+          const imageRef = ref(await getStorage(), url);
           await deleteObject(imageRef).catch(() => {});
         }
       }
@@ -270,7 +270,7 @@ export default function ChatBoard() {
     if (!window.confirm("Are you sure you want to delete this comment?")) return;
     try {
       if (imageUrl) {
-        const imageRef = ref(storage, imageUrl);
+        const imageRef = ref(await getStorage(), imageUrl);
         await deleteObject(imageRef).catch(() => {});
       }
       await deleteDoc(doc(db, "chat_posts", postId, "comments", commentId));

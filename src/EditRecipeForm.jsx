@@ -8,7 +8,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { db, storage } from "./firebase";
+import { db, getStorage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -97,7 +97,7 @@ export default function EditRecipeForm() {
     // Upload new image files
     const uploadPromises = imageInputs.filter(Boolean).map(async (file) => {
       const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-      const imageRef = ref(storage, `recipe-images/${uniqueSuffix}-${file.name}`);
+      const imageRef = ref(await getStorage(), `recipe-images/${uniqueSuffix}-${file.name}`);
       await uploadBytes(imageRef, file);
       const url = await getDownloadURL(imageRef);
       newImageUrls.push(url);
@@ -118,7 +118,7 @@ export default function EditRecipeForm() {
         const path = decodeURIComponent(
           new URL(url).pathname.split("/o/")[1].split("?")[0]
         );
-        await deleteObject(ref(storage, path));
+        await deleteObject(ref(await getStorage(), path));
       } catch (err) {
         console.warn("Failed to delete image from storage:", url, err);
       }

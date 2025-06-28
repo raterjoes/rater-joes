@@ -11,7 +11,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { ref as storageRef, deleteObject } from "firebase/storage";
-import { db, storage } from "./firebase";
+import { db, getStorage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";

@@ -13,7 +13,7 @@ import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { storage } from "./firebase";
+import { getStorage } from "./firebase";
 import { ref as storageRef, deleteObject } from "firebase/storage";
 
 export default function PendingReviewImages() {
@@ -92,6 +92,7 @@ export default function PendingReviewImages() {
         const { url } = docSnap.data() || {};
         if (url) {
           const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+          const storage = await getStorage();
           const fileRef = storageRef(storage, path);
           await deleteObject(fileRef);
         }

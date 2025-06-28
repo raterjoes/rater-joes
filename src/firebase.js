@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -15,5 +14,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
 export const auth = getAuth(app);
+
+// Lazy load storage to reduce initial bundle size
+let storageInstance = null;
+export const getStorage = async () => {
+  if (!storageInstance) {
+    const { getStorage } = await import("firebase/storage");
+    storageInstance = getStorage(app);
+  }
+  return storageInstance;
+};
