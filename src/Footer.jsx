@@ -1,6 +1,6 @@
 // src/Footer.jsx
 import { Link } from "react-router-dom";
-import logo from "./assets/logo.png"; // adjust if your logo path is different
+import logo from "./assets/logo.webp"; // Updated to use optimized WebP logo
 
 export default function Footer() {
   return (
@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="max-w-5xl mx-auto px-4 flex flex-col items-center space-y-4 sm:flex-row sm:justify-between sm:space-y-0">
         <div className="flex items-center gap-2">
           <img src={logo} alt="Logo" className="w-8 h-8" />
-          <span className="font-semibold text-gray-700">Rater Joe’s</span>
+          <span className="font-semibold text-gray-700">Rater Joe's</span>
         </div>
 
         <nav className="flex gap-4 text-gray-600 text-sm">
