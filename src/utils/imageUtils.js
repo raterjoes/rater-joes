@@ -4,17 +4,27 @@
  */
 export function generateThumbnailUrl(originalUrl, width = 200) {
   if (!originalUrl) return null;
-  
   try {
-    // For Firebase Storage URLs, we can add query parameters for resizing
-    // This is a simple approach - in production you might want to use a CDN or image service
+    // Parse the original URL
     const url = new URL(originalUrl);
-    
-    // Add resize parameters if supported by your storage/CDN
-    // For now, we'll return the original URL as fallback
-    // You can implement actual thumbnail generation based on your setup
-    
-    return originalUrl;
+    // Extract the path after '/o/' and before any query params
+    const match = url.pathname.match(/\/o\/(.+)$/);
+    if (!match) return originalUrl;
+    let path = decodeURIComponent(match[1]);
+    // Example: images/myphoto.jpg
+    // Get filename and extension
+    const lastSlash = path.lastIndexOf("/");
+    const folder = lastSlash !== -1 ? path.slice(0, lastSlash) : "";
+    const filename = lastSlash !== -1 ? path.slice(lastSlash + 1) : path;
+    const dot = filename.lastIndexOf(".");
+    if (dot === -1) return originalUrl;
+    const name = filename.slice(0, dot);
+    const ext = filename.slice(dot);
+    // Build thumbnail path: thumbs/myphoto_200x200.jpg
+    const thumbPath = `thumbs/${name}_${width}x${width}${ext}`;
+    // Rebuild the URL
+    const thumbUrl = `${url.origin}/v0/b/${url.hostname.split(".")[0]}/o/${encodeURIComponent(thumbPath)}?alt=media`;
+    return thumbUrl;
   } catch (error) {
     console.warn('Failed to generate thumbnail URL:', error);
     return originalUrl;
