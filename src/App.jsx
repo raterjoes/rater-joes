@@ -18,7 +18,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Link } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus, Grid } from "lucide-react";
 import "./index.css";
 
 import { useAuth } from "./AuthContext";
@@ -126,15 +126,15 @@ export default function App() {
 
       <main className="flex-grow">
         <section
-          className="relative bg-cover bg-center bg-no-repeat h-[16rem] sm:h-[24rem] md:h-[28rem]"
+          className="relative bg-cover bg-center bg-no-repeat h-36 sm:h-[24rem] md:h-[28rem]"
           style={{ backgroundImage: `url(${groceriesImage})` }}
         >
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-rose-800/80 w-[90%] sm:w-[70%] md:w-[60%] text-white text-center p-4 sm:p-6 rounded shadow-lg">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4">
+            <div className="bg-rose-800/80 w-[96%] sm:w-[70%] md:w-[60%] text-white text-center p-2 sm:p-6 rounded shadow-lg">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-4">
                 Explore Trader Joe's Reviews
               </h2>
-              <p className="text-base sm:text-lg mb-3 sm:mb-4">
+              <p className="text-sm sm:text-lg mb-2 sm:mb-4">
                 Find the top-rated products and share your own feedback with the community.
               </p>
               {user ? (
@@ -145,14 +145,14 @@ export default function App() {
                       searchSection.scrollIntoView({ behavior: "smooth" });
                     }
                   }}
-                  className="inline-block px-6 py-3 bg-rose-900 rounded text-white hover:bg-red-700"
+                  className="inline-block px-4 py-2 sm:px-6 sm:py-3 bg-rose-900 rounded text-white hover:bg-red-700 text-sm sm:text-base"
                 >
                   Browse
                 </button>
               ) : (
                 <Link
                   to="/login"
-                  className="inline-block px-6 py-3 bg-rose-900 rounded text-white hover:bg-red-700"
+                  className="inline-block px-4 py-2 sm:px-6 sm:py-3 bg-rose-900 rounded text-white hover:bg-red-700 text-sm sm:text-base"
                 >
                   Log In
                 </Link>
@@ -161,50 +161,81 @@ export default function App() {
           </div>
         </section>
 
-        <div id="search-section" className="max-w-2xl mx-auto px-4 mt-6">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div id="search-section" className="max-w-2xl mx-auto px-2 mt-3 sm:px-4 sm:mt-6">
+          <div className="flex flex-row gap-2 sm:flex-row items-center justify-center">
             <input
               type="text"
               placeholder="Search for a product..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-grow p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+              className="flex-grow p-2 sm:p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto text-sm sm:text-base"
             />
             <Link
               to="/add-item"
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap"
+              className="flex items-center gap-1 px-2 py-2 sm:px-4 sm:py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap text-sm sm:text-base"
             >
-              + Add New Item
+              <Plus className="w-4 h-4" />
+              <span className="hidden xs:inline">Add</span>
+              <span className="inline sm:hidden">+</span>
+            </Link>
+            <Link
+              to="/categories"
+              className="flex items-center gap-1 px-2 py-2 sm:px-4 sm:py-2 bg-rose-800 text-white rounded hover:bg-rose-900 whitespace-nowrap text-sm sm:text-base"
+            >
+              <Grid className="w-4 h-4" />
+              <span className="hidden xs:inline">Categories</span>
+              <span className="inline sm:hidden">Browse</span>
             </Link>
           </div>
         </div>
 
-        <div className="hidden sm:flex w-full max-w-5xl mx-auto px-4 mt-4 flex-wrap justify-center gap-3">
-          {categories.map((cat) => {
+        <div className="sm:hidden flex flex-col items-center mt-3 gap-2">
+          {/* Only show the first category section on mobile */}
+          {categories.slice(0, 1).map((cat) => {
             const catProducts = categorized[cat] || [];
             if (catProducts.length === 0) return null;
             return (
-              <a
-                key={cat}
-                href={`#${cat.toLowerCase().replace(/\s+/g, "-")}`}
-                className="px-4 py-2 bg-rose-800/30 text-rose-800 rounded hover:bg-rose-200"
-              >
-                {cat}
-              </a>
+              <section key={cat} className="w-full">
+                <div className="flex justify-between items-center mb-2 px-1">
+                  <h2 className="text-lg font-semibold">{cat}</h2>
+                  <Link
+                    to={`/category/${encodeURIComponent(cat)}`}
+                    className="text-rose-800 text-xs underline"
+                  >
+                    View All
+                  </Link>
+                </div>
+                <div className="flex overflow-x-auto gap-2 pb-2 px-1">
+                  {catProducts.slice(0, 2).map((product) => (
+                    <div key={product.id} className="min-w-[60vw] max-w-[70vw]">
+                      <ProductCard
+                        productId={product.id}
+                        name={product.name}
+                        image={product.image}
+                        images={product.images}
+                        description={product.description}
+                        onReviewSubmit={handleReviewSubmit}
+                        user={user}
+                        seasonal={product.seasonal}
+                        season={product.season}
+                        newUntil={product.newUntil}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
             );
           })}
-        </div>
-
-        <div className="sm:hidden flex justify-center mt-4">
           <Link
             to="/categories"
-            className="px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900"
+            className="mt-2 px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900 text-sm"
           >
-            Browse Categories
+            See All Categories
           </Link>
         </div>
 
-        <div className="p-6 space-y-12">
+        {/* Desktop/tablet: show all categories as before */}
+        <div className="hidden sm:block p-6 space-y-12">
           {totalFiltered === 0 ? (
             <p className="text-center text-gray-500 text-lg mt-10">
               No products match your search.
