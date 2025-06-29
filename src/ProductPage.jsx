@@ -26,6 +26,7 @@ import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import LazyImage from "./LazyImage";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -327,25 +328,25 @@ export default function ProductPage() {
             </div>
 
             <div className="overflow-hidden rounded-lg shadow">
-              {product.images?.length ? (
+              {product.images && product.images.length > 0 ? (
                 <>
                   <Swiper
                     modules={[Navigation, Pagination]}
-                    spaceBetween={10}
-                    slidesPerView={1}
                     navigation
                     pagination={{ clickable: true }}
+                    className="h-64"
                   >
-                    {product.images.map((url, i) => (
-                      <SwiperSlide key={i}>
-                        <img
+                    {product.images.map((url, index) => (
+                      <SwiperSlide key={index}>
+                        <LazyImage
                           src={url}
-                          alt={`Image ${i + 1}`}
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-64 object-cover cursor-pointer"
+                          placeholder="🛒"
                           onClick={() => {
-                            setLightboxIndex(i);
+                            setLightboxIndex(index);
                             setLightboxOpen(true);
                           }}
-                          className="w-full h-64 object-cover cursor-pointer rounded"
                         />
                       </SwiperSlide>
                     ))}
@@ -360,10 +361,11 @@ export default function ProductPage() {
                   />
                 </>
               ) : (
-                <img
+                <LazyImage
                   src={product.image}
                   alt={product.name}
                   className="w-full h-64 object-cover"
+                  placeholder="🛒"
                 />
               )}
             </div>

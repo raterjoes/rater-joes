@@ -4,6 +4,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import LazyImage from "./LazyImage";
 import recipesHeader from "./assets/recipes-header.webp";
 import recipesFooter from "./assets/recipes-footer.webp"
 
@@ -129,11 +130,12 @@ export default function RecipesPage() {
                 {recipe.images?.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto mb-3">
                     {recipe.images.map((url, index) => (
-                      <img
+                      <LazyImage
                         key={index}
                         src={url}
                         alt={`${recipe.title} ${index + 1}`}
                         className="w-40 h-32 object-cover rounded cursor-pointer hover:opacity-90"
+                        placeholder="🍳"
                         onClick={(e) => {
                           e.preventDefault();
                           setLightboxImages(recipe.images);
