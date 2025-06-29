@@ -61,6 +61,7 @@ export default function RecipeDetailPage() {
   const [copied, setCopied] = useCopyState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const shareUrl = `https://rater-joes-next.vercel.app/recipe/${id}`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -204,16 +205,16 @@ export default function RecipeDetailPage() {
         )}
 
         <div className="flex items-center gap-2 mt-1 mb-0">
-          <FacebookShareButton url={window.location.href} quote={recipe.title}>
+          <FacebookShareButton url={shareUrl} quote={recipe.title}>
             <FacebookIcon size={32} round />
           </FacebookShareButton>
-          <TwitterShareButton url={window.location.href} title={recipe.title}>
+          <TwitterShareButton url={shareUrl} title={recipe.title}>
             <TwitterIcon size={32} round />
           </TwitterShareButton>
-          <UniversalWhatsappShareButton url={window.location.href} title={recipe.title} />
+          <UniversalWhatsappShareButton url={shareUrl} title={recipe.title} />
           <button
             onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
+              navigator.clipboard.writeText(shareUrl);
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             }}

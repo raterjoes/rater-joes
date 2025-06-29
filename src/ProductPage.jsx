@@ -269,6 +269,8 @@ export default function ProductPage() {
     sortedReviews.sort((a, b) => a.rating - b.rating);
   }
 
+  const shareUrl = `https://rater-joes-next.vercel.app/product/${id}`;
+
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans">
       <Helmet>
@@ -302,16 +304,16 @@ export default function ProductPage() {
               </p>
               {/* Social Share Buttons */}
               <div className="flex items-center gap-2 mt-2 mb-4">
-                <FacebookShareButton url={window.location.href} quote={product.name}>
+                <FacebookShareButton url={shareUrl} quote={product.name}>
                   <FacebookIcon size={32} round />
                 </FacebookShareButton>
-                <TwitterShareButton url={window.location.href} title={product.name}>
+                <TwitterShareButton url={shareUrl} title={product.name}>
                   <TwitterIcon size={32} round />
                 </TwitterShareButton>
-                <UniversalWhatsappShareButton url={window.location.href} title={product.name} />
+                <UniversalWhatsappShareButton url={shareUrl} title={product.name} />
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
+                    navigator.clipboard.writeText(shareUrl);
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1500);
                   }}
