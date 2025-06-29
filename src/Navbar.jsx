@@ -151,7 +151,7 @@ export default function Navbar() {
       <div
         className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
           mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        } mt-3 space-y-2 text-white`}
+        } mt-1 space-y-2 text-white`}
       >
         {user && (
           <div className="italic">Hi, {nickname || user.email}</div>
