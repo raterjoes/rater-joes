@@ -11,9 +11,6 @@ import recipesFooter from "./assets/recipes-footer.webp"
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState([]);
   const [products, setProducts] = useState([]);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxImages, setLightboxImages] = useState([]);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [searchParams] = useSearchParams();
@@ -39,16 +36,6 @@ export default function RecipesPage() {
     };
 
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setLightboxOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const filteredRecipes = recipes.filter((recipe) => {
@@ -137,12 +124,6 @@ export default function RecipesPage() {
                         className="w-40 h-32 object-cover rounded cursor-pointer hover:opacity-90"
                         placeholder="🍳"
                         thumbnailSrc={recipe.thumbnailUrls?.[index] || null}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setLightboxImages(recipe.images);
-                          setLightboxIndex(index);
-                          setLightboxOpen(true);
-                        }}
                       />
                     ))}
                   </div>
@@ -186,51 +167,6 @@ export default function RecipesPage() {
       />
       </main>
       <Footer />
-
-      {/* Lightbox */}
-      {lightboxOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <button
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 text-white text-3xl font-bold hover:text-red-400"
-          >
-            ×
-          </button>
-
-          <div className="max-w-3xl w-full px-4 text-center">
-            <img
-              src={lightboxImages[lightboxIndex]}
-              alt={`Recipe ${lightboxIndex + 1}`}
-              className="max-h-[80vh] mx-auto object-contain rounded"
-            />
-
-            {lightboxImages.length > 1 && (
-              <div className="flex justify-between mt-4 text-white text-xl font-semibold">
-                <button
-                  onClick={() =>
-                    setLightboxIndex((prev) =>
-                      prev === 0 ? lightboxImages.length - 1 : prev - 1
-                    )
-                  }
-                  className="px-4 py-2 hover:text-rose-400"
-                >
-                  ⬅ Prev
-                </button>
-                <button
-                  onClick={() =>
-                    setLightboxIndex((prev) =>
-                      prev === lightboxImages.length - 1 ? 0 : prev + 1
-                    )
-                  }
-                  className="px-4 py-2 hover:text-rose-400"
-                >
-                  Next ➡
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
