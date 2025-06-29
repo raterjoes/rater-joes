@@ -7,7 +7,8 @@ export default function LazyImage({
   placeholder = "🛒",
   thumbnailSrc = null, // Low-res thumbnail URL
   onLoad,
-  onError 
+  onError,
+  onClick
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -61,6 +62,12 @@ export default function LazyImage({
     setThumbnailLoaded(true);
   };
 
+  const handleClick = (e) => {
+    if (onClick) {
+      onClick(e);
+    }
+  };
+
   // Show placeholder until we have either a thumbnail or the full image loaded
   const showPlaceholder = !isInView || (!thumbnailLoaded && !isLoaded) || hasError;
 
@@ -98,6 +105,7 @@ export default function LazyImage({
               }}
               onLoad={handleThumbnailLoad}
               onError={() => setThumbnailLoaded(false)} // Don't show error for thumbnail
+              onClick={handleClick}
               loading="lazy"
             />
           )}
@@ -113,6 +121,7 @@ export default function LazyImage({
             }}
             onLoad={handleLoad}
             onError={handleError}
+            onClick={handleClick}
             loading="lazy"
           />
         </>
