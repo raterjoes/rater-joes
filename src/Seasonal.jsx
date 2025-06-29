@@ -110,6 +110,7 @@ function ProductGrid({ products }) {
           reviews={product.reviews || []}
           seasonal={product.seasonal}
           season={product.season}
+          newUntil={product.newUntil}
         />
       ))}
     </div>

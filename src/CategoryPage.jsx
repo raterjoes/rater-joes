@@ -92,6 +92,7 @@ export default function CategoryPage() {
                       user={null}
                       seasonal={product.seasonal}
                       season={product.season}
+                      newUntil={product.newUntil}
                     />
                   ))}
                 </div>
