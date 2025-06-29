@@ -47,7 +47,7 @@ function UniversalWhatsappShareButton({ url }) {
     window.location.href = appUrl;
     setTimeout(() => {
       window.open(webUrl, "_blank");
-    }, 1000);
+    }, 1500);
   };
   return (
     <button onClick={handleClick} className="focus:outline-none" title="Share on WhatsApp">
