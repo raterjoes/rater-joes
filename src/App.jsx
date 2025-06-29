@@ -235,8 +235,16 @@ export default function App() {
 }
 
 function CategorySection({ id, title, products, onReviewSubmit, user }) {
-  const preview = products.slice(0, 6);
   const [isOpen, setIsOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const preview = isMobile ? products.slice(0, 2) : products.slice(0, 6);
 
   return (
     <section id={id} className="bg-gray-50 border shadow rounded p-3 transition mb-6">
