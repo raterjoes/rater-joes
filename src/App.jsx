@@ -175,7 +175,7 @@ export default function App() {
               className="flex items-center gap-1 px-2 py-2 sm:px-4 sm:py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap text-sm sm:text-base"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden xs:inline">Add</span>
+              <span className="sm:inline hidden">Add New Item</span>
               <span className="inline sm:hidden">+</span>
             </Link>
             <Link
@@ -183,7 +183,7 @@ export default function App() {
               className="flex items-center gap-1 px-2 py-2 sm:px-4 sm:py-2 bg-rose-800 text-white rounded hover:bg-rose-900 whitespace-nowrap text-sm sm:text-base"
             >
               <Grid className="w-4 h-4" />
-              <span className="hidden xs:inline">Categories</span>
+              <span className="sm:inline hidden">Browse Categories</span>
               <span className="inline sm:hidden">Browse</span>
             </Link>
           </div>
