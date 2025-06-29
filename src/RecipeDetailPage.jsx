@@ -33,7 +33,7 @@ import { Helmet } from "react-helmet-async";
 function UniversalWhatsappShareButton({ url }) {
   const handleClick = (e) => {
     e.preventDefault();
-    const text = encodeURIComponent(url);
+    const text = encodeURIComponent(url + ' ');
     const appUrl = `whatsapp://send?text=${text}`;
     const webUrl = `https://wa.me/?text=${text}`;
     window.location.href = appUrl;
