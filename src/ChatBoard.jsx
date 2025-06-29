@@ -74,9 +74,13 @@ export default function ChatBoard() {
   useEffect(() => {
     const checkAdmin = async () => {
       if (user) {
-        const snapshot = await getDocs(collection(db, "admins"));
-        const adminEmails = snapshot.docs.map((doc) => doc.data().email);
-        setIsAdmin(adminEmails.includes(user.email));
+        try {
+          const adminDoc = await getDoc(doc(db, "admins", user.email));
+          setIsAdmin(adminDoc.exists());
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+          setIsAdmin(false);
+        }
       }
     };
     checkAdmin();
