@@ -189,49 +189,36 @@ export default function App() {
           </div>
         </div>
 
+        {/* Mobile: show all categories as bins with 2 products each, stacked vertically */}
         <div className="sm:hidden flex flex-col items-center mt-3 gap-2">
-          {/* Only show the first category section on mobile */}
-          {categories.slice(0, 1).map((cat) => {
+          {categories.map((cat) => {
             const catProducts = categorized[cat] || [];
             if (catProducts.length === 0) return null;
             return (
-              <section key={cat} className="w-full">
+              <section key={cat} className="w-full bg-gray-50 border shadow rounded p-3 mb-3">
                 <div className="flex justify-between items-center mb-2 px-1">
                   <h2 className="text-lg font-semibold">{cat}</h2>
-                  <Link
-                    to={`/category/${encodeURIComponent(cat)}`}
-                    className="text-rose-800 text-xs underline"
-                  >
-                    View All
-                  </Link>
                 </div>
-                <div className="flex overflow-x-auto gap-2 pb-2 px-1">
+                <div className="grid grid-cols-2 gap-2">
                   {catProducts.slice(0, 2).map((product) => (
-                    <div key={product.id} className="min-w-[60vw] max-w-[70vw]">
-                      <ProductCard
-                        productId={product.id}
-                        name={product.name}
-                        image={product.image}
-                        images={product.images}
-                        description={product.description}
-                        onReviewSubmit={handleReviewSubmit}
-                        user={user}
-                        seasonal={product.seasonal}
-                        season={product.season}
-                        newUntil={product.newUntil}
-                      />
-                    </div>
+                    <ProductCard
+                      key={product.id}
+                      productId={product.id}
+                      name={product.name}
+                      image={product.image}
+                      images={product.images}
+                      description={product.description}
+                      onReviewSubmit={handleReviewSubmit}
+                      user={user}
+                      seasonal={product.seasonal}
+                      season={product.season}
+                      newUntil={product.newUntil}
+                    />
                   ))}
                 </div>
               </section>
             );
           })}
-          <Link
-            to="/categories"
-            className="mt-2 px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900 text-sm"
-          >
-            See All Categories
-          </Link>
         </div>
 
         {/* Desktop/tablet: show all categories as before */}
