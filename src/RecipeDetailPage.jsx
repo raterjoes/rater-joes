@@ -28,6 +28,7 @@ import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 import React from "react";
+import { Helmet } from "react-helmet-async";
 
 function UniversalWhatsappShareButton({ url, title }) {
   const handleClick = (e) => {
@@ -146,6 +147,14 @@ export default function RecipeDetailPage() {
   if (!recipe) {
     return (
       <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
+        <Helmet>
+          <title>{recipe?.title || 'Recipe'}</title>
+          <meta property="og:title" content={recipe?.title || ''} />
+          <meta property="og:description" content={recipe?.description || ''} />
+          <meta property="og:image" content={recipe?.images?.[0] || ''} />
+          <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
+          <meta property="og:type" content="website" />
+        </Helmet>
         <Navbar />
         <main className="flex-grow max-w-3xl mx-auto px-4 py-10">
           <p>Loading recipe...</p>
@@ -157,6 +166,14 @@ export default function RecipeDetailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
+      <Helmet>
+        <title>{recipe?.title || 'Recipe'}</title>
+        <meta property="og:title" content={recipe?.title || ''} />
+        <meta property="og:description" content={recipe?.description || ''} />
+        <meta property="og:image" content={recipe?.images?.[0] || ''} />
+        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <Navbar />
       <main className="flex-grow w-full max-w-3xl sm:max-w-3xl md:max-w-4xl lg:max-w-4xl mx-auto px-6 py-10 space-y-8">
         <h1 className="text-3xl font-bold">{recipe.title}</h1>

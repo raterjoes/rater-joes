@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css'
 import { AuthProvider } from "./AuthContext";
+import { HelmetProvider } from "react-helmet-async";
 
 // Lazy load all major route components
 const App = lazy(() => import('./App.jsx'));
@@ -36,32 +37,34 @@ function Loader() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AuthProvider>
-      <BrowserRouter>
-        <Suspense fallback={<Loader />}>
-          <Routes>
-            <Route path="/" element={<App />} />
-            <Route path="/login" element={<AuthForm />} />
-            <Route path="/add-item" element={<AddItemForm />} />
-            <Route path="/products/:id" element={<ProductPage />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/pending-products" element={<PendingProducts />} />
-            <Route path="/chat" element={<ChatBoard />} />
-            <Route path="/seasonal" element={<Seasonal />} />
-            <Route path="/new-arrivals" element={<NewArrivals />} />
-            <Route path="/pending-review-images" element={<PendingReviewImages />} />
-            <Route path="/category/:categoryName" element={<CategoryPage />} />
-            <Route path="/categories" element={<AllCategoriesPage />} />
-            <Route path="/submit-recipe" element={<SubmitRecipePage />} />
-            <Route path="/recipes" element={<RecipesPage />} />
-            <Route path="/pending-recipes" element={<PendingRecipes />} />
-            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-            <Route path="/edit-recipe/:id" element={<EditRecipeForm />} />
-            <Route path="/products/:id/not-found" element={<ProductNotFound />} />
-            <Route path="/edit-product/:id" element={<EditProductPage />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Suspense fallback={<Loader />}>
+            <Routes>
+              <Route path="/" element={<App />} />
+              <Route path="/login" element={<AuthForm />} />
+              <Route path="/add-item" element={<AddItemForm />} />
+              <Route path="/products/:id" element={<ProductPage />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/pending-products" element={<PendingProducts />} />
+              <Route path="/chat" element={<ChatBoard />} />
+              <Route path="/seasonal" element={<Seasonal />} />
+              <Route path="/new-arrivals" element={<NewArrivals />} />
+              <Route path="/pending-review-images" element={<PendingReviewImages />} />
+              <Route path="/category/:categoryName" element={<CategoryPage />} />
+              <Route path="/categories" element={<AllCategoriesPage />} />
+              <Route path="/submit-recipe" element={<SubmitRecipePage />} />
+              <Route path="/recipes" element={<RecipesPage />} />
+              <Route path="/pending-recipes" element={<PendingRecipes />} />
+              <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+              <Route path="/edit-recipe/:id" element={<EditRecipeForm />} />
+              <Route path="/products/:id/not-found" element={<ProductNotFound />} />
+              <Route path="/edit-product/:id" element={<EditProductPage />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </AuthProvider>
+    </HelmetProvider>
   </React.StrictMode>
 )

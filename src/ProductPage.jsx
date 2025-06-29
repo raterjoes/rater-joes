@@ -36,6 +36,7 @@ import {
 } from "react-share";
 import { useState as useCopyState } from "react";
 import React from "react";
+import { Helmet } from "react-helmet-async";
 
 function UniversalWhatsappShareButton({ url, title }) {
   const handleClick = (e) => {
@@ -270,6 +271,14 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans">
+      <Helmet>
+        <title>{product?.name || 'Product'}</title>
+        <meta property="og:title" content={product?.name || ''} />
+        <meta property="og:description" content={product?.description || ''} />
+        <meta property="og:image" content={product?.images?.[0] || product?.image || ''} />
+        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <Navbar />
 
       <main className="flex-grow">
