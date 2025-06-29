@@ -13,6 +13,7 @@ export default function EditProductPage() {
   const { user } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -40,8 +41,8 @@ export default function EditProductPage() {
   }, [id, navigate]);
 
   const handleSave = async (message) => {
-    alert(message);
-    navigate(`/products/${id}`);
+    setSuccessMessage(message);
+    // Optionally, you can scroll to the top or focus the message
   };
 
   const handleCancel = () => {
@@ -73,11 +74,17 @@ export default function EditProductPage() {
       <main className="flex-grow max-w-4xl mx-auto px-4 py-10">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h1 className="text-2xl font-bold mb-6">Edit Product: {product.name}</h1>
-          <EditProductForm
-            product={product}
-            onCancel={handleCancel}
-            onSave={handleSave}
-          />
+          {successMessage ? (
+            <div className="mb-4 p-4 bg-green-100 text-green-800 rounded text-center font-semibold">
+              {successMessage}
+            </div>
+          ) : (
+            <EditProductForm
+              product={product}
+              onCancel={handleCancel}
+              onSave={handleSave}
+            />
+          )}
         </div>
       </main>
       <Footer />

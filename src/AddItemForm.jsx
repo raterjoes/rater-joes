@@ -1,19 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import {
   collection,
   addDoc,
   serverTimestamp,
-  getDocs
+  getDocs,
+  doc,
+  updateDoc
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
-import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL, listAll } from "firebase/storage";
 import { getStorage } from "./firebase";
 import categories from "./categories";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { addMonths } from 'date-fns';
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
+import Cropper from "react-cropper";
+import "./assets/cropper.css";
+import imageCompression from "browser-image-compression";
 
 export default function AddItemForm() {
   const { user } = useAuth();
@@ -40,6 +48,14 @@ export default function AddItemForm() {
   const [loading, setLoading] = useState(false);
 
   const [isNew, setIsNew] = useState(false);
+
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropIndex, setCropIndex] = useState(null);
+  const [cropperInstance, setCropperInstance] = useState(null);
+
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     if (imageInputs.length === 0 || imageInputs.every((f) => f !== null)) {
@@ -86,10 +102,23 @@ export default function AddItemForm() {
     setCheckingDuplicates(false);
   };
 
-  const handleImageChange = (index, file) => {
-    const updatedInputs = [...imageInputs];
-    updatedInputs[index] = file;
-    setImageInputs(updatedInputs);
+  const handleImageChange = async (index, file) => {
+    if (!file) return;
+    try {
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true
+      });
+      const updatedInputs = [...imageInputs];
+      updatedInputs[index] = compressedFile;
+      setImageInputs(updatedInputs);
+    } catch (err) {
+      // fallback to original file if compression fails
+      const updatedInputs = [...imageInputs];
+      updatedInputs[index] = file;
+      setImageInputs(updatedInputs);
+    }
   };    
 
   const handleRemoveImage = (index) => {
@@ -121,50 +150,54 @@ const moveImage = (fromIndex, toIndex) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+    setUploadProgress(0);
     try {
-      // Get lazy-loaded storage
       const storage = await getStorage();
-      
-      // 🔥 Create upload tasks with original index attached
-      const uploadTasks = imageInputs
-        .map((file, index) => {
-          if (!file) return null;
-          return (async () => {
-            const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-            const imageRef = ref(storage, `product-images/${uniqueSuffix}-${file.name}`);
-            await uploadBytes(imageRef, file);
-            const url = await getDownloadURL(imageRef);
+      const files = imageInputs.filter(Boolean);
+      let totalBytes = 0;
+      let uploadedBytes = 0;
+      let uploadResults = [];
 
-            // Poll for the thumbnail in thumbs/ (wait up to 10s)
-            const thumbName = `${uniqueSuffix}-${file.name}`.replace(/\.[^/.]+$/, '') + `_200x200` + file.name.slice(file.name.lastIndexOf('.'));
-            const thumbRef = ref(storage, `product-images/thumbs/${thumbName}`);
-            let thumbUrl = null;
-            for (let i = 0; i < 20; i++) { // Try for up to 10s
-              try {
-                thumbUrl = await getDownloadURL(thumbRef);
-                break;
-              } catch (err) {
-                await new Promise(res => setTimeout(res, 500));
-              }
+      // First, get total bytes for all files
+      for (const file of files) {
+        totalBytes += file.size;
+      }
+
+      // Upload each file with resumable upload and track progress
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+        const imageRef = ref(storage, `product-images/${uniqueSuffix}-${file.name}`);
+        const uploadTask = uploadBytesResumable(imageRef, file);
+        await new Promise((resolve, reject) => {
+          uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+              // Update progress for this file
+              const bytesTransferred = snapshot.bytesTransferred;
+              // Calculate total uploaded bytes so far
+              const otherUploaded = uploadResults.reduce((sum, r) => sum + (r.size || 0), 0);
+              setUploadProgress(
+                Math.min(1, (otherUploaded + bytesTransferred) / totalBytes)
+              );
+            },
+            (error) => reject(error),
+            async () => {
+              // On complete
+              const url = await getDownloadURL(uploadTask.snapshot.ref);
+              uploadResults[i] = { index: i, url, size: file.size };
+              resolve();
             }
-            return { index, url, thumbUrl };
-          })();
-        })
-        .filter(Boolean);
+          );
+        });
+      }
 
-      // 🔥 Run all uploads in parallel
-      const uploadResults = await Promise.all(uploadTasks);
+      // Sort and extract URLs
+      uploadResults = uploadResults.sort((a, b) => a.index - b.index);
+      const imageUrls = uploadResults.map((result) => result.url);
+      const thumbnailUrls = uploadResults.map((result) => result.thumbUrl || null);
 
-      // 🔥 Sort the uploaded images by original index
-      const imageUrls = uploadResults
-        .sort((a, b) => a.index - b.index)
-        .map((result) => result.url);
-      const thumbnailUrls = uploadResults
-        .sort((a, b) => a.index - b.index)
-        .map((result) => result.thumbUrl || null);
-
-      // ✅ Save product with images and thumbnails in correct order
+      // 2. Save product with images and thumbnails in correct order
       await addDoc(collection(db, "products"), {
         name,
         category,
@@ -181,20 +214,40 @@ const moveImage = (fromIndex, toIndex) => {
 
       setSubmitted(true);
       setIsNew(false);
+      setUploadProgress(1);
     } catch (err) {
       console.error("❌ Error submitting product:", err);
       alert("Error adding product");
     } finally {
-    setLoading(false); // ✅ Always stop loading at the end
+      setLoading(false);
     }
   };
+
+  // Helper to get image URLs for lightbox
+  const imageUrls = imageInputs.filter(Boolean).map((file) => URL.createObjectURL(file));
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
 
       <main className="flex-grow">
-        {!user ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center mt-10 space-y-2 text-gray-700">
+            <div className="text-4xl animate-spin-slow">🛒</div>
+            <p className="text-lg font-semibold">Uploading your item...</p>
+            <div className="w-full max-w-xs mt-4">
+              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-3 bg-green-500 transition-all duration-300"
+                  style={{ width: `${Math.round(uploadProgress * 100)}%` }}
+                ></div>
+              </div>
+              <div className="text-center text-sm text-gray-600 mt-1">
+                {Math.round(uploadProgress * 100)}%
+              </div>
+            </div>
+          </div>
+        ) : !user ? (
           <div className="text-center mt-10 space-y-4">
             <p className="text-red-600 font-medium text-lg">
               You must be logged in to add a new item.
@@ -333,8 +386,23 @@ const moveImage = (fromIndex, toIndex) => {
                         <img
                           src={URL.createObjectURL(file)}
                           alt={`Preview ${index + 1}`}
-                          className="w-24 h-24 object-cover rounded border"
+                          className="w-24 h-24 object-cover rounded border cursor-pointer"
+                          onClick={() => {
+                            setLightboxIndex(imageInputs.filter(Boolean).indexOf(file));
+                            setLightboxOpen(true);
+                          }}
                         />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCropIndex(index);
+                            setCropModalOpen(true);
+                          }}
+                          className="absolute bottom-[-10px] left-0 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                          title="Crop"
+                        >
+                          ✂️
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(index)}
@@ -434,6 +502,85 @@ const moveImage = (fromIndex, toIndex) => {
       </main>
 
       <Footer />
+
+      {/* Lightbox for image previews */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        index={lightboxIndex}
+        slides={imageUrls.map((src) => ({ src }))}
+        plugins={[Zoom]}
+        zoom={{ maxZoomPixelRatio: 4 }}
+      >
+        <p className="text-xs text-gray-500 mt-1 mb-2">Edit before previewing in lightbox.</p>
+      </Lightbox>
+
+      {/* Crop/Rotate Modal */}
+      {cropModalOpen && cropIndex !== null && imageInputs[cropIndex] && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-lg p-4 relative w-full max-w-2xl h-[80vh] flex flex-col items-center justify-center mx-2">
+            <div className="relative w-full h-[50vh] max-h-[60vw] bg-gray-100 rounded">
+              <Cropper
+                src={URL.createObjectURL(imageInputs[cropIndex])}
+                style={{ height: '100%', width: '100%' }}
+                initialAspectRatio={NaN}
+                aspectRatio={undefined}
+                guides={true}
+                viewMode={1}
+                dragMode="move"
+                background={false}
+                responsive={true}
+                autoCropArea={0.5}
+                checkOrientation={false}
+                onInitialized={setCropperInstance}
+              />
+            </div>
+            <div className="flex gap-2 mt-4 justify-end w-full">
+              <button
+                type="button"
+                className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                title="Rotate Left"
+                onClick={() => cropperInstance && cropperInstance.rotate(-90)}
+              >
+                ⟲
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                title="Rotate Right"
+                onClick={() => cropperInstance && cropperInstance.rotate(90)}
+              >
+                ⟳
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                onClick={() => setCropModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={async () => {
+                  if (cropperInstance) {
+                    const canvas = cropperInstance.getCroppedCanvas();
+                    canvas.toBlob((blob) => {
+                      const croppedFile = new File([blob], imageInputs[cropIndex].name, { type: imageInputs[cropIndex].type });
+                      const updated = [...imageInputs];
+                      updated[cropIndex] = croppedFile;
+                      setImageInputs(updated);
+                      setCropModalOpen(false);
+                    }, imageInputs[cropIndex].type);
+                  }
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

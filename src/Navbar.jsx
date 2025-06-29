@@ -28,9 +28,9 @@ export default function Navbar() {
       if (user) {
         try {
           console.log("Checking admin status for:", user.email);
-          const adminDoc = await getDoc(doc(db, "admins", user.email));
-          const isAdminUser = adminDoc.exists();
-          console.log("Admin document exists:", isAdminUser);
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          const isAdminUser = userDoc.exists() && userDoc.data().isAdmin === true;
+          console.log("User is admin:", isAdminUser);
           setIsAdmin(isAdminUser);
         } catch (err) {
           console.error("Error checking admin status:", err);

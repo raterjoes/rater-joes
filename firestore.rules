@@ -2,10 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if the user is an admin by email
+    // Helper function to check if the user is an admin by UID
     function isAdmin() {
       return request.auth != null &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
     // Products
@@ -13,57 +13,48 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth != null;
       allow update, delete: if isAdmin();
+    }
 
-      // Images subcollection
-      match /images/{imageId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-        allow update, delete: if isAdmin();
-      }
+    // Product edits (pending products)
+    match /product_edits/{editId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if request.auth != null;
     }
 
     // Reviews
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
-        (request.auth.uid == resource.data.userId || isAdmin());
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
 
-      // Images subcollection
+      // Images subcollection (pending review images)
       match /images/{imageId} {
         allow read: if true;
         allow create: if request.auth != null;
+        // Only admins can update/delete (approve/reject) review images
         allow update, delete: if isAdmin();
       }
     }
 
     // Recipes
     match /recipes/{recipeId} {
-      allow read: if true;
+      // Public can read only approved recipes
+      allow read: if resource.data.approved == true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
-        (request.auth.uid == resource.data.userId || isAdmin());
-
-      // Images subcollection
-      match /images/{imageId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-        allow update, delete: if isAdmin();
-      }
+      // Only admins can update/delete unapproved recipes, users can update/delete their own approved recipes
+      allow update, delete: if isAdmin() || (request.auth != null && request.auth.uid == resource.data.userId && resource.data.approved == true);
     }
 
-    // Chat posts and subcollections
+    // Chat posts
     match /chat_posts/{postId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
-        (request.auth.uid == resource.data.userId || isAdmin());
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
 
       match /comments/{commentId} {
         allow read: if true;
         allow create: if request.auth != null;
-        allow update, delete: if request.auth != null &&
-          (request.auth.uid == resource.data.userId || isAdmin());
+        allow update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
       }
 
       match /likes/{likeId} {
@@ -71,27 +62,14 @@ service cloud.firestore {
       }
     }
 
-    // Product edits
-    match /product_edits/{editId} {
-      allow read: if isAdmin();
-      allow create: if request.auth != null;
-      allow delete: if isAdmin();
-    }
-
     // Users
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Admins
-    match /admins/{adminEmail} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
-    }
-
-    // Catch-all: allow admin reads, block all writes
+    // Catch-all: block all reads and writes not explicitly allowed above
     match /{document=**} {
-      allow read: if isAdmin();
+      allow read: if false;
       allow write: if false;
     }
   }

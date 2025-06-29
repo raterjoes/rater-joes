@@ -27,8 +27,8 @@ export default function PendingRecipes() {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) return;
-      const adminDoc = await getDoc(doc(db, "admins", user.email));
-      setIsAdmin(adminDoc.exists());
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      setIsAdmin(userDoc.exists() && userDoc.data().isAdmin === true);
       setAdminCheckComplete(true);
     };
     checkAdminStatus();

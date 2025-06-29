@@ -27,6 +27,35 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import LazyImage from "./LazyImage";
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  WhatsappIcon
+} from "react-share";
+import { useState as useCopyState } from "react";
+import React from "react";
+
+function UniversalWhatsappShareButton({ url, title }) {
+  const handleClick = (e) => {
+    e.preventDefault();
+    const text = encodeURIComponent(title + " " + url);
+    const appUrl = `whatsapp://send?text=${text}`;
+    const webUrl = `https://wa.me/?text=${text}`;
+    // Try to open the app
+    window.location.href = appUrl;
+    // Fallback to web after 1 second if app not opened
+    setTimeout(() => {
+      window.open(webUrl, "_blank");
+    }, 1000);
+  };
+  return (
+    <button onClick={handleClick} className="focus:outline-none" title="Share on WhatsApp">
+      <WhatsappIcon size={32} round />
+    </button>
+  );
+}
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -44,6 +73,7 @@ export default function ProductPage() {
   const [reviewLightboxImages, setReviewLightboxImages] = useState([]);
   const [reviewLightboxIndex, setReviewLightboxIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [copied, setCopied] = useCopyState(false);
 
   const storage = getStorage();
 
@@ -186,8 +216,8 @@ export default function ProductPage() {
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user) return;
-      const adminDoc = await getDoc(doc(db, "admins", user.email));
-      setIsAdmin(adminDoc.exists());
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      setIsAdmin(userDoc.exists() && userDoc.data().isAdmin === true);
     };
     checkAdmin();
   }, [user]);
@@ -261,6 +291,28 @@ export default function ProductPage() {
               <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
                 {product.category}
               </p>
+              {/* Social Share Buttons */}
+              <div className="flex items-center gap-2 mt-2 mb-4">
+                <FacebookShareButton url={window.location.href} quote={product.name}>
+                  <FacebookIcon size={32} round />
+                </FacebookShareButton>
+                <TwitterShareButton url={window.location.href} title={product.name}>
+                  <TwitterIcon size={32} round />
+                </TwitterShareButton>
+                <UniversalWhatsappShareButton url={window.location.href} title={product.name} />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                  }}
+                  className="focus:outline-none"
+                  title="Copy link"
+                >
+                  <span className="inline-block w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 text-lg font-bold">🔗</span>
+                </button>
+                {copied && <span className="text-green-600 text-xs ml-1">Copied!</span>}
+              </div>
               {average ? (
                 <div className="flex items-center text-yellow-500 mb-2">
                   {"⭐".repeat(Math.round(average))}

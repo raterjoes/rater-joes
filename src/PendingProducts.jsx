@@ -35,8 +35,8 @@ export default function PendingProducts() {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) return;
-      const adminDoc = await getDoc(doc(db, "admins", user.email));
-      setIsAdmin(adminDoc.exists());
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      setIsAdmin(userDoc.exists() && userDoc.data().isAdmin === true);
       setAdminCheckComplete(true);
     };
     checkAdminStatus();
@@ -73,37 +73,29 @@ export default function PendingProducts() {
   
     try {
       const existing = existingSnap.data();
-  
-      const oldImages = [...(existing.images || []), ...(existing.image ? [existing.image] : [])];
-      const newImages = [...(edit.images || []), ...(edit.image ? [edit.image] : [])];
-  
-      const imagesToDelete = oldImages.filter((url) => !newImages.includes(url));
-  
-      for (const url of imagesToDelete) {
-        try {
-          const path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
-          const storage = await getStorage();
-          const fileRef = storageRef(storage, path);
-          await deleteObject(fileRef);
-          console.log("🧼 Deleted old image from storage:", path);
-        } catch (err) {
-          console.warn("⚠️ Failed to delete replaced image:", err);
-        }
-      }
-  
-      // Update product with new data
-      await updateDoc(refToProduct, {
-        name: edit.name || "",
-        category: edit.category || "",
-        image: edit.image || "",
-        images: edit.images || [],
-        description: edit.description || "",
-        seasonal: !!edit.seasonal,
-        season: edit.season || null,
-      });
-  
+
+      // Only use edit.images/thumbnailUrls if they are defined, otherwise preserve existing
+      const images = Array.isArray(edit.images) ? edit.images : existing.images || [];
+      const thumbnailUrls = Array.isArray(edit.thumbnailUrls) ? edit.thumbnailUrls : existing.thumbnailUrls || [];
+
+      const updatePayload = {
+        name: edit.name ?? existing.name ?? "",
+        category: edit.category ?? existing.category ?? "",
+        image: edit.image ?? existing.image ?? "",
+        images,
+        description: edit.description ?? existing.description ?? "",
+        seasonal: edit.seasonal ?? existing.seasonal ?? false,
+        season: edit.season ?? existing.season ?? null,
+        thumbnailUrls,
+        newUntil: edit.newUntil ?? existing.newUntil ?? null,
+        createdAt: existing.createdAt ?? null,
+        addedBy: existing.addedBy ?? null,
+        approved: true
+      };
+      await updateDoc(refToProduct, updatePayload);
+
       await updateDoc(doc(db, "product_edits", edit.id), { approved: true });
-  
+
       alert("✅ Edit applied!");
       setEditProposals((prev) => prev.filter((e) => e.id !== edit.id));
     } catch (err) {

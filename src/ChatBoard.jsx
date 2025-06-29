@@ -75,8 +75,8 @@ export default function ChatBoard() {
     const checkAdmin = async () => {
       if (user) {
         try {
-          const adminDoc = await getDoc(doc(db, "admins", user.email));
-          setIsAdmin(adminDoc.exists());
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          setIsAdmin(userDoc.exists() && userDoc.data().isAdmin === true);
         } catch (error) {
           console.error("Error checking admin status:", error);
           setIsAdmin(false);

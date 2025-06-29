@@ -19,12 +19,35 @@ import { useAuth } from "./AuthContext";
 import {
   FacebookShareButton,
   TwitterShareButton,
-  WhatsappShareButton,
   FacebookIcon,
   TwitterIcon,
-  WhatsappIcon,
+  WhatsappIcon
 } from "react-share";
 import { useState as useCopyState } from "react";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
+import React from "react";
+
+function UniversalWhatsappShareButton({ url, title }) {
+  const handleClick = (e) => {
+    e.preventDefault();
+    const text = encodeURIComponent(title + " " + url);
+    const appUrl = `whatsapp://send?text=${text}`;
+    const webUrl = `https://wa.me/?text=${text}`;
+    // Try to open the app
+    window.location.href = appUrl;
+    // Fallback to web after 1 second if app not opened
+    setTimeout(() => {
+      window.open(webUrl, "_blank");
+    }, 1000);
+  };
+  return (
+    <button onClick={handleClick} className="focus:outline-none" title="Share on WhatsApp">
+      <WhatsappIcon size={32} round />
+    </button>
+  );
+}
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -35,6 +58,8 @@ export default function RecipeDetailPage() {
   const [comments, setComments] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [copied, setCopied] = useCopyState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,8 +102,8 @@ export default function RecipeDetailPage() {
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user) return;
-      const adminDoc = await getDoc(doc(db, "admins", user.email));
-      setIsAdmin(adminDoc.exists());
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      setIsAdmin(userDoc.exists() && userDoc.data().isAdmin === true);
     };
     checkAdmin();
   }, [user]);
@@ -143,9 +168,21 @@ export default function RecipeDetailPage() {
                 key={index}
                 src={url}
                 alt={`${recipe.title} ${index + 1}`}
-                className="w-48 h-36 object-cover rounded"
+                className="w-48 h-36 object-cover rounded cursor-pointer"
+                onClick={() => {
+                  setLightboxIndex(index);
+                  setLightboxOpen(true);
+                }}
               />
             ))}
+            <Lightbox
+              open={lightboxOpen}
+              close={() => setLightboxOpen(false)}
+              index={lightboxIndex}
+              slides={recipe.images.map((url) => ({ src: url }))}
+              plugins={[Zoom]}
+              zoom={{ maxZoomPixelRatio: 4 }}
+            />
           </div>
         )}
 
@@ -156,9 +193,7 @@ export default function RecipeDetailPage() {
           <TwitterShareButton url={window.location.href} title={recipe.title}>
             <TwitterIcon size={32} round />
           </TwitterShareButton>
-          <WhatsappShareButton url={window.location.href} title={recipe.title}>
-            <WhatsappIcon size={32} round />
-          </WhatsappShareButton>
+          <UniversalWhatsappShareButton url={window.location.href} title={recipe.title} />
           <button
             onClick={() => {
               navigator.clipboard.writeText(window.location.href);

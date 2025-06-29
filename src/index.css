@@ -31,4 +31,39 @@ html {
   background: #f3f4f6;
   z-index: 0;
 }
+
+/* Make react-easy-crop crop area border bold and blue */
+.reactEasyCrop_CropArea {
+  border: 2px solid #2563eb !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2563eb;
+}
+
+/* If handles exist, make them large and blue */
+.reactEasyCrop_ResizeHandle {
+  width: 18px !important;
+  height: 18px !important;
+  background: #2563eb !important;
+  border: 2px solid #fff !important;
+  border-radius: 50%;
+  box-shadow: 0 0 2px #0003;
+  opacity: 1 !important;
+  z-index: 10000 !important;
+}
+
+/* Make the crop area border blue and bold for react-easy-crop */
+div[style*="border: 1px solid"] {
+  border: 2px solid #2563eb !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2563eb;
+}
+
+/* Make the resize handles larger and blue for react-easy-crop */
+div[style*="background: white"][style*="border-radius: 50%"] {
+  width: 18px !important;
+  height: 18px !important;
+  background: #2563eb !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 0 2px #0003;
+  opacity: 1 !important;
+  z-index: 10000 !important;
+}
   
