@@ -5,13 +5,15 @@ export default function LazyImage({
   alt, 
   className = "", 
   placeholder = "🛒",
+  thumbnailSrc = null, // Low-res thumbnail URL
   onLoad,
   onError 
 }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(false);
-  const imgRef = useRef(null);
+  const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
+  const containerRef = useRef(null);
   const observerRef = useRef(null);
 
   useEffect(() => {
@@ -21,8 +23,8 @@ export default function LazyImage({
         if (entry.isIntersecting) {
           setIsInView(true);
           // Once in view, we can stop observing
-          if (imgRef.current) {
-            observerRef.current.unobserve(imgRef.current);
+          if (containerRef.current) {
+            observerRef.current.unobserve(containerRef.current);
           }
         }
       },
@@ -33,8 +35,8 @@ export default function LazyImage({
     );
 
     // Start observing
-    if (imgRef.current) {
-      observerRef.current.observe(imgRef.current);
+    if (containerRef.current) {
+      observerRef.current.observe(containerRef.current);
     }
 
     // Cleanup
@@ -55,22 +57,22 @@ export default function LazyImage({
     if (onError) onError();
   };
 
+  const handleThumbnailLoad = () => {
+    setThumbnailLoaded(true);
+  };
+
   return (
-    <div 
-      ref={imgRef}
-      className={`relative ${className}`}
-      style={{ minHeight: '200px' }} // Prevent layout shift
-    >
+    <div ref={containerRef} className={`relative w-full h-full ${className}`} style={{minHeight:0}}>
       {/* Loading placeholder */}
-      {!isLoaded && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
+      {!isInView && (
+        <div className="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center animate-pulse">
           <div className="text-4xl opacity-50">{placeholder}</div>
         </div>
       )}
 
       {/* Error placeholder */}
-      {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+      {isInView && hasError && (
+        <div className="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center">
           <div className="text-center">
             <div className="text-4xl mb-2">📷</div>
             <div className="text-sm text-gray-500">Image unavailable</div>
@@ -78,18 +80,33 @@ export default function LazyImage({
         </div>
       )}
 
-      {/* Actual image */}
+      {/* Images (only render when in view and not error) */}
       {isInView && !hasError && (
-        <img
-          src={src}
-          alt={alt}
-          className={`${className} transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoad={handleLoad}
-          onError={handleError}
-          loading="lazy" // Native lazy loading as fallback
-        />
+        <>
+          {/* Thumbnail (low-res) */}
+          {thumbnailSrc && (
+            <img
+              src={thumbnailSrc}
+              alt={alt}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+              style={{opacity: (thumbnailLoaded && !isLoaded) ? 1 : 0, zIndex: 1}}
+              onLoad={handleThumbnailLoad}
+              onError={handleError}
+              loading="lazy"
+            />
+          )}
+
+          {/* High-res image */}
+          <img
+            src={src}
+            alt={alt}
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+            style={{opacity: isLoaded ? 1 : 0, zIndex: 2}}
+            onLoad={handleLoad}
+            onError={handleError}
+            loading="lazy"
+          />
+        </>
       )}
     </div>
   );

@@ -27,6 +27,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import LazyImage from "./LazyImage";
+import { generateThumbnailUrl } from "./utils/imageUtils";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -343,6 +344,7 @@ export default function ProductPage() {
                           alt={`${product.name} ${index + 1}`}
                           className="w-full h-64 object-cover cursor-pointer"
                           placeholder="🛒"
+                          thumbnailSrc={generateThumbnailUrl(url)}
                           onClick={() => {
                             setLightboxIndex(index);
                             setLightboxOpen(true);
@@ -365,7 +367,8 @@ export default function ProductPage() {
                   src={product.image}
                   alt={product.name}
                   className="w-full h-64 object-cover"
-                  placeholder="🛒"
+                  placeholder="��"
+                  thumbnailSrc={generateThumbnailUrl(product.image)}
                 />
               )}
             </div>

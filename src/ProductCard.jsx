@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import LazyImage from "./LazyImage";
+import { generateThumbnailUrl } from "./utils/imageUtils";
 
 export default function ProductCard({
   name,
@@ -49,23 +50,25 @@ export default function ProductCard({
         </span>
       )}
 
-      <div className="relative mb-3">
+      <div className="relative mb-3 w-full h-32 overflow-hidden rounded">
         {images && images.length > 0 ? (
           <LazyImage
             src={images[0]}
             alt={name}
-            className="w-full h-32 object-cover rounded"
+            className="w-full h-full object-cover"
             placeholder="🛒"
+            thumbnailSrc={generateThumbnailUrl(images[0])}
           />
         ) : image ? (
           <LazyImage
             src={image}
             alt={name}
-            className="w-full h-32 object-cover rounded"
+            className="w-full h-full object-cover"
             placeholder="🛒"
+            thumbnailSrc={generateThumbnailUrl(image)}
           />
         ) : (
-          <div className="w-full h-32 bg-gray-200 rounded flex items-center justify-center">
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
             <span className="text-gray-400">📷</span>
           </div>
         )}
