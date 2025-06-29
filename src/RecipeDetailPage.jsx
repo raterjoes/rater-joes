@@ -16,6 +16,15 @@ import { db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useAuth } from "./AuthContext";
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  WhatsappShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  WhatsappIcon,
+} from "react-share";
+import { useState as useCopyState } from "react";
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -25,6 +34,7 @@ export default function RecipeDetailPage() {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [copied, setCopied] = useCopyState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -139,8 +149,32 @@ export default function RecipeDetailPage() {
           </div>
         )}
 
+        <div className="flex items-center gap-2 mt-1 mb-0">
+          <FacebookShareButton url={window.location.href} quote={recipe.title}>
+            <FacebookIcon size={32} round />
+          </FacebookShareButton>
+          <TwitterShareButton url={window.location.href} title={recipe.title}>
+            <TwitterIcon size={32} round />
+          </TwitterShareButton>
+          <WhatsappShareButton url={window.location.href} title={recipe.title}>
+            <WhatsappIcon size={32} round />
+          </WhatsappShareButton>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            className="focus:outline-none"
+            title="Copy link"
+          >
+            <span className="inline-block w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 text-lg font-bold">🔗</span>
+          </button>
+          {copied && <span className="text-green-600 text-xs ml-1">Copied!</span>}
+        </div>
+
         {recipe.description && (
-          <p className="text-lg text-gray-700">{recipe.description}</p>
+          <p className="text-lg text-gray-700 mt-0">{recipe.description}</p>
         )}
 
         <div>
