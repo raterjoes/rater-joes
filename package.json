@@ -7,15 +7,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "browser-image-compression": "^2.0.2",
+    "cropperjs": "^2.0.0",
     "date-fns": "^4.1.0",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.6.0",
     "firebase-admin": "^13.4.0",
     "lucide-react": "^0.487.0",
     "react": "^18.2.0",
+    "react-cropper": "^2.3.3",
     "react-dom": "^18.2.0",
+    "react-easy-crop": "^5.4.2",
     "react-ga4": "^2.1.0",
     "react-router-dom": "^7.4.1",
+    "react-share": "^5.2.2",
     "sharp": "^0.34.2",
     "swiper": "^11.2.6",
     "yet-another-react-lightbox": "^3.22.0"
