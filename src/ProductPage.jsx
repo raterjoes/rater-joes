@@ -38,15 +38,13 @@ import { useState as useCopyState } from "react";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 
-function UniversalWhatsappShareButton({ url, title }) {
+function UniversalWhatsappShareButton({ url }) {
   const handleClick = (e) => {
     e.preventDefault();
-    const text = encodeURIComponent(title + " " + url);
+    const text = encodeURIComponent(url);
     const appUrl = `whatsapp://send?text=${text}`;
     const webUrl = `https://wa.me/?text=${text}`;
-    // Try to open the app
     window.location.href = appUrl;
-    // Fallback to web after 1 second if app not opened
     setTimeout(() => {
       window.open(webUrl, "_blank");
     }, 1000);
@@ -310,7 +308,7 @@ export default function ProductPage() {
                 <TwitterShareButton url={shareUrl} title={product.name}>
                   <TwitterIcon size={32} round />
                 </TwitterShareButton>
-                <UniversalWhatsappShareButton url={shareUrl} title={product.name} />
+                <UniversalWhatsappShareButton url={shareUrl} />
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(shareUrl);
