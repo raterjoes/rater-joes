@@ -216,6 +216,14 @@ export default function App() {
                     />
                   ))}
                 </div>
+                <div className="mt-3 text-center">
+                  <Link
+                    to={`/category/${encodeURIComponent(cat)}`}
+                    className="inline-block px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900 text-sm"
+                  >
+                    View All
+                  </Link>
+                </div>
               </section>
             );
           })}
