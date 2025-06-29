@@ -63,7 +63,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-rose-800/80 shadow px-4 py-2 sm:py-4 relative z-20">
+    <header className="bg-rose-800/80 shadow px-2 py-2 sm:py-4 relative z-20">
       <div className="w-full flex justify-between items-center">
         <Link to="/" className="text-xl font-bold text-white hover:underline">
           Rater Joe's
