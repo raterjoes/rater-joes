@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import LazyImage from "./LazyImage";
-import { generateThumbnailUrl } from "./utils/imageUtils";
 
 export default function ProductCard({
   name,
   image,
   images,
+  thumbnailUrls,
   description,
   productId,
   reviews = [],
@@ -20,6 +20,7 @@ export default function ProductCard({
     : null;
 
   const displayImage = images?.length ? images[0] : image;
+  const displayThumbnail = thumbnailUrls?.length ? thumbnailUrls[0] : null;
 
   const seasonStyles = {
     Winter: { emoji: "❄️", bg: "bg-blue-100", text: "text-blue-700" },
@@ -57,7 +58,7 @@ export default function ProductCard({
             alt={name}
             className="w-full h-full object-cover"
             placeholder="🛒"
-            thumbnailSrc={generateThumbnailUrl(images[0])}
+            thumbnailSrc={displayThumbnail}
           />
         ) : image ? (
           <LazyImage
@@ -65,7 +66,7 @@ export default function ProductCard({
             alt={name}
             className="w-full h-full object-cover"
             placeholder="🛒"
-            thumbnailSrc={generateThumbnailUrl(image)}
+            thumbnailSrc={displayThumbnail}
           />
         ) : (
           <div className="w-full h-full bg-gray-200 flex items-center justify-center">

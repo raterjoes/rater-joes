@@ -87,6 +87,7 @@ export default function CategoryPage() {
                       name={product.name}
                       image={product.image}
                       images={product.images}
+                      thumbnailUrls={product.thumbnailUrls}
                       description={product.description}
                       reviews={[]} // optional
                       user={null}

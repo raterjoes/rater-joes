@@ -207,6 +207,7 @@ export default function App() {
                       name={product.name}
                       image={product.image}
                       images={product.images}
+                      thumbnailUrls={product.thumbnailUrls}
                       description={product.description}
                       onReviewSubmit={handleReviewSubmit}
                       user={user}
@@ -296,6 +297,7 @@ function CategorySection({ id, title, products, onReviewSubmit, user }) {
                 name={product.name}
                 image={product.image}
                 images={product.images}
+                thumbnailUrls={product.thumbnailUrls}
                 description={product.description}
                 onReviewSubmit={onReviewSubmit}
                 user={user}

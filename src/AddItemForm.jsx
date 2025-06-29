@@ -8,7 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { useAuth } from "./AuthContext";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 import { getStorage } from "./firebase";
 import categories from "./categories";
 import Navbar from "./Navbar";
@@ -135,7 +135,20 @@ const moveImage = (fromIndex, toIndex) => {
             const imageRef = ref(storage, `product-images/${uniqueSuffix}-${file.name}`);
             await uploadBytes(imageRef, file);
             const url = await getDownloadURL(imageRef);
-            return { index, url }; // Keep track of index
+
+            // Poll for the thumbnail in thumbs/ (wait up to 10s)
+            const thumbName = `${uniqueSuffix}-${file.name}`.replace(/\.[^/.]+$/, '') + `_200x200` + file.name.slice(file.name.lastIndexOf('.'));
+            const thumbRef = ref(storage, `product-images/thumbs/${thumbName}`);
+            let thumbUrl = null;
+            for (let i = 0; i < 20; i++) { // Try for up to 10s
+              try {
+                thumbUrl = await getDownloadURL(thumbRef);
+                break;
+              } catch (err) {
+                await new Promise(res => setTimeout(res, 500));
+              }
+            }
+            return { index, url, thumbUrl };
           })();
         })
         .filter(Boolean);
@@ -147,12 +160,16 @@ const moveImage = (fromIndex, toIndex) => {
       const imageUrls = uploadResults
         .sort((a, b) => a.index - b.index)
         .map((result) => result.url);
+      const thumbnailUrls = uploadResults
+        .sort((a, b) => a.index - b.index)
+        .map((result) => result.thumbUrl || null);
 
-      // ✅ Save product with images in correct order
+      // ✅ Save product with images and thumbnails in correct order
       await addDoc(collection(db, "products"), {
         name,
         category,
         images: imageUrls,
+        thumbnailUrls,
         description,
         seasonal: isSeasonal,
         season: isSeasonal ? season : null,

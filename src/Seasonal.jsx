@@ -107,6 +107,7 @@ function ProductGrid({ products }) {
           description={product.description}
           image={product.image}
           images={product.images}
+          thumbnailUrls={product.thumbnailUrls}
           reviews={product.reviews || []}
           seasonal={product.seasonal}
           season={product.season}
