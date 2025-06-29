@@ -11,7 +11,7 @@ export function generateThumbnailUrl(originalUrl, width = 200) {
     const match = url.pathname.match(/\/o\/(.+)$/);
     if (!match) return originalUrl;
     let path = decodeURIComponent(match[1]);
-    // Example: images/myphoto.jpg
+    // Example: product-images/myphoto.jpg
     // Get filename and extension
     const lastSlash = path.lastIndexOf("/");
     const folder = lastSlash !== -1 ? path.slice(0, lastSlash) : "";
@@ -20,10 +20,15 @@ export function generateThumbnailUrl(originalUrl, width = 200) {
     if (dot === -1) return originalUrl;
     const name = filename.slice(0, dot);
     const ext = filename.slice(dot);
-    // Build thumbnail path: thumbs/myphoto_200x200.jpg
-    const thumbPath = `thumbs/${name}_${width}x${width}${ext}`;
-    // Rebuild the URL
-    const thumbUrl = `${url.origin}/v0/b/${url.hostname.split(".")[0]}/o/${encodeURIComponent(thumbPath)}?alt=media`;
+    // Build thumbnail path: product-images/thumbs/myphoto_200x200.jpg
+    const thumbPath = folder ? `${folder}/thumbs/${name}_${width}x${width}${ext}` : `thumbs/${name}_${width}x${width}${ext}`;
+    // Extract token from original URL if present
+    const token = url.searchParams.get('token');
+    // Use the full bucket name (url.hostname)
+    let thumbUrl = `${url.origin}/v0/b/${url.hostname}/o/${encodeURIComponent(thumbPath)}?alt=media`;
+    if (token) {
+      thumbUrl += `&token=${token}`;
+    }
     return thumbUrl;
   } catch (error) {
     console.warn('Failed to generate thumbnail URL:', error);
