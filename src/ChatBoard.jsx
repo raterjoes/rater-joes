@@ -27,6 +27,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
+import LikePopover from "./LikePopover";
 
 function formatTimestamp(timestamp) {
   if (!timestamp) return "";
@@ -63,6 +64,7 @@ export default function ChatBoard() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [likerNicknames, setLikerNicknames] = useState({});
 
   useEffect(() => {
     const param = searchParams.get("post");
@@ -175,6 +177,28 @@ export default function ChatBoard() {
       });
     });
   }, [posts]);
+
+  useEffect(() => {
+    // Fetch nicknames for all likers of all posts
+    async function fetchNicknames() {
+      const allLikerIds = new Set();
+      Object.values(likes).forEach((ids) => ids && ids.forEach((id) => allLikerIds.add(id)));
+      const nicknameMap = {};
+      await Promise.all(
+        Array.from(allLikerIds).map(async (uid) => {
+          if (!uid) return;
+          try {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            nicknameMap[uid] = userDoc.exists() ? (userDoc.data().nickname || userDoc.data().email || "Anonymous") : "Anonymous";
+          } catch {
+            nicknameMap[uid] = "Anonymous";
+          }
+        })
+      );
+      setLikerNicknames(nicknameMap);
+    }
+    if (Object.keys(likes).length > 0) fetchNicknames();
+  }, [likes]);
 
   const handleNewPost = async (e) => {
     e.preventDefault();
@@ -415,12 +439,10 @@ export default function ChatBoard() {
               <p>
                 by {post.nickname} • {formatTimestamp(post.createdAt)}
               </p>
-              <button
+              <LikePopover
+                likers={(likes[post.id] || []).map((uid) => likerNicknames[uid] || "Anonymous")}
                 onClick={() => toggleLike(post.id)}
-                className={`text-sm ${likes[post.id]?.includes(user?.uid) ? "text-blue-600 font-semibold" : ""}`}
-              >
-                👍 {likes[post.id]?.length || 0}
-              </button>
+              />
             </div>
 
             {(isAdmin || user?.uid === post.userId) && (
