@@ -335,11 +335,14 @@ export default function ProductPage() {
                 <button
                   onClick={handleToggleSave}
                   disabled={saving}
-                  className={`ml-2 text-2xl focus:outline-none transition-opacity ${saving ? 'opacity-50' : ''}`}
+                  className={`ml-2 text-3xl focus:outline-none transition-opacity align-middle ${saving ? 'opacity-50' : ''}`}
                   title={isSaved ? 'Remove from My Lists' : 'Save to My Lists'}
                   style={{ color: isSaved ? '#e0245e' : '#bbb' }}
                 >
                   {isSaved ? '♥' : '♡'}
+                  <span className="ml-2 text-xs text-gray-500 align-middle">
+                    {isSaved ? 'Remove from My Saved Products' : 'Add to My Saved Products'}
+                  </span>
                 </button>
               </h1>
               <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
