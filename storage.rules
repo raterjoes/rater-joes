@@ -1,10 +1,11 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Helper: checks if the user is an admin (exists in /admins/{email})
+
+    // ✅ Correct admin check from users/{uid}
     function isAdmin() {
-      return request.auth != null
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
     // Product images
@@ -13,22 +14,30 @@ service firebase.storage {
       allow write: if request.auth != null;
       allow delete: if isAdmin();
     }
+
     // Review images
     match /review-images/{fileId} {
       allow read: if true;
       allow write: if request.auth != null;
       allow delete: if isAdmin();
     }
+
     // Recipe images
     match /recipe-images/{fileId} {
       allow read: if true;
       allow write: if request.auth != null;
       allow delete: if isAdmin();
     }
+
     // Chat images
     match /chat-images/{fileId} {
       allow read: if true;
       allow write: if request.auth != null;
+      allow delete: if isAdmin();
+    }
+
+    // Fallback: allow admins to delete anything else
+    match /{allPaths=**} {
       allow delete: if isAdmin();
     }
   }

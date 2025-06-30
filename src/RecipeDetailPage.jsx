@@ -64,6 +64,7 @@ export default function RecipeDetailPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showLoginMessage, setShowLoginMessage] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -320,44 +321,82 @@ export default function RecipeDetailPage() {
 
           {isAdmin && (
             <button
-            onClick={async () => {
-              if (!confirm("Are you sure you want to delete this recipe?")) return;
-            
-              try {
-                const { ref, deleteObject } = await import("firebase/storage");
-                const { storage } = await import("./firebase");
-            
-                // 1. Delete all recipe images
-                if (recipe.images?.length > 0) {
-                  for (const url of recipe.images) {
-                    const path = decodeURIComponent(
-                      new URL(url).pathname.split("/o/")[1].split("?")[0]
-                    );
-                    await deleteObject(ref(storage, path));
+              disabled={deleting}
+              onClick={async () => {
+                if (!confirm("Are you sure you want to delete this recipe?")) return;
+                setDeleting(true);
+                try {
+                  const { ref, deleteObject } = await import("firebase/storage");
+                  const { getStorage } = await import("./firebase");
+                  const storage = await getStorage();
+                  // 1. Delete all recipe images
+                  if (recipe.images?.length > 0) {
+                    for (const url of recipe.images) {
+                      try {
+                        // Only process Firebase Storage URLs
+                        const oIndex = url.indexOf("/o/");
+                        if (oIndex === -1) {
+                          console.warn("Skipping non-storage image URL:", url);
+                          continue;
+                        }
+                        const pathPart = url.substring(oIndex + 3).split("?")[0];
+                        if (!pathPart) {
+                          console.warn("Could not parse storage path from URL, skipping:", url);
+                          continue;
+                        }
+                        const path = decodeURIComponent(pathPart);
+                        const storageRef = ref(storage, path); // SAFE
+                        await deleteObject(storageRef);
+                        console.log("Deleted image from storage:", path);
+                      } catch (imgErr) {
+                        console.error("Failed to delete image from storage:", url, imgErr);
+                        alert("Failed to delete one or more images. Aborting deletion.");
+                        setDeleting(false);
+                        return;
+                      }
+                    }
                   }
+                  // 2. Delete all comments in subcollection
+                  try {
+                    const commentsRef = collection(db, "recipes", id, "comments");
+                    const commentSnap = await getDocs(commentsRef);
+                    const commentDeletePromises = commentSnap.docs.map((docSnap) =>
+                      deleteDoc(docSnap.ref)
+                    );
+                    await Promise.all(commentDeletePromises);
+                    console.log("Deleted all comments for recipe");
+                  } catch (commentErr) {
+                    console.error("Failed to delete comments:", commentErr);
+                    alert("Failed to delete comments. Aborting deletion.");
+                    setDeleting(false);
+                    return;
+                  }
+                  // 3. Delete the main recipe document
+                  try {
+                    await deleteDoc(doc(db, "recipes", id));
+                    console.log("Deleted recipe document");
+                  } catch (docErr) {
+                    if (docErr.code === "permission-denied") {
+                      alert("Permission denied. You do not have rights to delete this recipe.");
+                    } else if (docErr.code === "not-found") {
+                      alert("Recipe not found. It may have already been deleted.");
+                    } else {
+                      alert("Failed to delete recipe document: " + docErr.message);
+                    }
+                    setDeleting(false);
+                    return;
+                  }
+                  alert("Recipe and all related data deleted.");
+                  window.location.href = "/recipes";
+                } catch (err) {
+                  console.error("Unexpected error during deletion:", err);
+                  alert("Unexpected error during deletion: " + (err.message || err));
+                  setDeleting(false);
                 }
-            
-                // 2. Delete all comments in subcollection
-                const commentsRef = collection(db, "recipes", id, "comments");
-                const commentSnap = await getDocs(commentsRef);
-                const commentDeletePromises = commentSnap.docs.map((docSnap) =>
-                  deleteDoc(docSnap.ref)
-                );
-                await Promise.all(commentDeletePromises);
-            
-                // 3. Delete the main recipe document
-                await deleteDoc(doc(db, "recipes", id));
-            
-                alert("Recipe and all related data deleted.");
-                window.location.href = "/recipes";
-              } catch (err) {
-                console.error("Failed to delete everything:", err);
-                alert("Failed to delete recipe.");
-              }
-            }}            
-              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+              }}
+              className={`px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 ${deleting ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
-              Delete Recipe
+              {deleting ? 'Deleting...' : 'Delete Recipe'}
             </button>
           )}
         </div>

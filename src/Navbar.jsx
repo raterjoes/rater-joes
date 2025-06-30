@@ -12,6 +12,7 @@ export default function Navbar() {
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileAdminOpen, setMobileAdminOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -163,16 +164,28 @@ export default function Navbar() {
         )}
         {user && isAdmin && (
           <div className="space-y-1">
-            <p className="font-semibold mt-2">Admin</p>
-            <Link to="/pending-products" className="block hover:underline ml-2">
-              Pending Products
-            </Link>
-            <Link to="/pending-review-images" className="block hover:underline ml-2">
-              Pending Review Images
-            </Link>
-            <Link to="/pending-recipes" className="block hover:underline ml-2">
-              Pending Recipes
-            </Link>
+            <button
+              className="font-semibold mt-2 flex items-center gap-2 focus:outline-none"
+              onClick={() => setMobileAdminOpen((prev) => !prev)}
+              aria-expanded={mobileAdminOpen}
+              aria-controls="mobile-admin-subpages"
+            >
+              Admin
+              <span className={`transform transition-transform ${mobileAdminOpen ? 'rotate-90' : ''}`}>▶</span>
+            </button>
+            {mobileAdminOpen && (
+              <div id="mobile-admin-subpages" className="ml-4 space-y-1">
+                <Link to="/pending-products" className="block hover:underline">
+                  Pending Products
+                </Link>
+                <Link to="/pending-review-images" className="block hover:underline">
+                  Pending Review Images
+                </Link>
+                <Link to="/pending-recipes" className="block hover:underline">
+                  Pending Recipes
+                </Link>
+              </div>
+            )}
           </div>
         )}
         <Link to="/contact" className="block hover:underline">Contact</Link>
