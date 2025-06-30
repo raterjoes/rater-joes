@@ -33,25 +33,26 @@ export default function ProductCard({
 
   const isNew = newUntil && new Date() < new Date(newUntil);
 
+  console.log({ name, seasonal, season });
+
   return (
     <Link
       to={`/products/${productId}`}
       className="relative block bg-white rounded-md shadow p-2 transform hover:scale-105 hover:shadow-xl hover:ring-1 hover:ring-rose-300 transition-all duration-300 text-xs"
     >
-      {isNew && (
-        <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm bg-blue-100 text-blue-700 z-10">
-          🆕 New
-        </span>
-      )}
-      {seasonal && season && (
-        <span
-          className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${style.bg} ${style.text}`}
-        >
-          {style.emoji} Limited time: {season}
-        </span>
-      )}
-
       <div className="relative mb-3 w-full h-32 overflow-hidden rounded">
+        {isNew && (
+          <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm bg-blue-100 text-blue-700 z-10">
+            🆕 New
+          </span>
+        )}
+        {seasonal && season && (
+          <span
+            className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full shadow-sm min-w-max whitespace-nowrap z-10 ${style.bg} ${style.text}`}
+          >
+            {style.emoji} Limited time: {season}
+          </span>
+        )}
         {images && images.length > 0 ? (
           <LazyImage
             src={images[0]}
@@ -74,6 +75,7 @@ export default function ProductCard({
           </div>
         )}
       </div>
+
       <h3 className="text-lg font-semibold leading-tight">{name}</h3>
 
       {averageRating ? (

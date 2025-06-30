@@ -43,6 +43,8 @@ export default function Seasonal() {
         const data = doc.data();
         if (data.season && productsBySeason[data.season]) {
           productsBySeason[data.season].push({ id: doc.id, ...data });
+        } else {
+          console.log('Skipped product (invalid or missing season):', { id: doc.id, ...data });
         }
       });
       setSeasonalProducts(productsBySeason);
