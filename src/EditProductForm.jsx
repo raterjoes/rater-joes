@@ -9,6 +9,7 @@ import "./assets/cropper.css";
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
+import { addMonths } from 'date-fns';
 
 function EditProductForm({ product, onCancel, onSave }) {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ function EditProductForm({ product, onCancel, onSave }) {
   const [description, setDescription] = useState(product.description);
   const [isSeasonal, setIsSeasonal] = useState(product.seasonal || false);
   const [season, setSeason] = useState(product.season || "Winter");
+  const [isNew, setIsNew] = useState(product.newUntil ? true : false);
 
   const [loading, setLoading] = useState(false); // ✅ Add loading state
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -103,6 +105,7 @@ function EditProductForm({ product, onCancel, onSave }) {
         description,
         seasonal: isSeasonal,
         season: isSeasonal ? season : null,
+        newUntil: isNew ? addMonths(new Date(), 6).toISOString() : null,
         approved: false,
         editedBy: user.email,
         createdAt: serverTimestamp(),
@@ -320,6 +323,18 @@ function EditProductForm({ product, onCancel, onSave }) {
               </select>
             </div>
           )}
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="new"
+              checked={isNew}
+              onChange={(e) => setIsNew(e.target.checked)}
+            />
+            <label htmlFor="new" className="text-sm">
+              New Item?
+            </label>
+          </div>
 
           <div className="flex justify-end gap-2">
             <button
