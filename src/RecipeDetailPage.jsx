@@ -217,11 +217,14 @@ export default function RecipeDetailPage() {
           <button
             onClick={handleToggleSave}
             disabled={saving}
-            className={`ml-2 text-2xl focus:outline-none transition-opacity ${saving ? 'opacity-50' : ''}`}
+            className={`ml-2 text-3xl focus:outline-none transition-opacity align-middle flex items-center ${saving ? 'opacity-50' : ''}`}
             title={isSaved ? 'Remove from My Lists' : 'Save to My Lists'}
             style={{ color: isSaved ? '#e0245e' : '#bbb' }}
           >
-            {isSaved ? '♥' : '♡'}
+            <span>{isSaved ? '♥' : '♡'}</span>
+            <span className="ml-1 text-xs text-gray-500 leading-tight">
+              {isSaved ? 'Remove from My Saved Recipes' : 'Add to My Saved Recipes'}
+            </span>
           </button>
         </h1>
 
