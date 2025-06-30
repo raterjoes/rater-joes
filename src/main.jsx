@@ -25,6 +25,8 @@ const EditRecipeForm = lazy(() => import('./EditRecipeForm.jsx'));
 const NewArrivals = lazy(() => import('./NewArrivals.jsx'));
 const ProductNotFound = lazy(() => import('./ProductNotFound.jsx'));
 const EditProductPage = lazy(() => import('./EditProductPage.jsx'));
+const MyListsPage = lazy(() => import('./MyListPage.jsx'));
+const TrendingPage = lazy(() => import('./TrendingPage.jsx'));
 
 function Loader() {
   return (
@@ -61,6 +63,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               <Route path="/edit-recipe/:id" element={<EditRecipeForm />} />
               <Route path="/products/:id/not-found" element={<ProductNotFound />} />
               <Route path="/edit-product/:id" element={<EditProductPage />} />
+              <Route path="/my-lists" element={<MyListsPage />} />
+              <Route path="/trending" element={<TrendingPage />} />
             </Routes>
           </Suspense>
         </BrowserRouter>

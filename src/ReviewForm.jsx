@@ -4,7 +4,6 @@ import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/fires
 import { db, getStorage } from "./firebase";
 import { useParams } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { ChevronDown } from "lucide-react";
 
 export default function ReviewForm({ onSubmit }) {
   const [text, setText] = useState("");
@@ -103,11 +102,13 @@ export default function ReviewForm({ onSubmit }) {
         onClick={() => setIsOpen(!isOpen)}
       >
         <h3 className="text-xl font-semibold">Leave a Review</h3>
-        <ChevronDown
-          className={`w-5 h-5 text-gray-600 transition-transform duration-300 ${
-            isOpen ? "rotate-180" : "rotate-0"
+        <span
+          className={`w-5 h-5 text-gray-600 text-2xl font-bold transition-transform duration-300 ${
+            isOpen ? "rotate-45" : "rotate-0"
           }`}
-        />
+        >
+          +
+        </span>
       </div>
 
       <div

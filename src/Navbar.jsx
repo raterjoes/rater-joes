@@ -109,6 +109,11 @@ export default function Navbar() {
             <Link to="/new-arrivals" className="hover:underline">New Arrivals</Link>
             <Link to="/categories" className="hover:underline">Categories</Link>
             <Link to="/recipes" className="hover:underline">Recipes</Link>
+            <Link to="/trending" className="hover:underline">Trending</Link>
+
+            {user && (
+              <Link to="/my-lists" className="hover:underline">My Lists</Link>
+            )}
 
             {!user && (
               <Link to="/login" className="hover:underline">Log In</Link>
@@ -176,14 +181,16 @@ export default function Navbar() {
         <Link to="/new-arrivals" className="block hover:underline">New Arrivals</Link>
         <Link to="/categories" className="block hover:underline">Categories</Link>
         <Link to="/recipes" className="block hover:underline">Recipes</Link>
+        <Link to="/trending" className="block hover:underline">Trending</Link>
         {user && (
-          <button
-            onClick={handleLogout}
-            className="block text-left text-red-300 hover:underline mt-2"
-          >
-            Log Out
-          </button>
+          <Link to="/my-lists" className="block hover:underline">My Lists</Link>
         )}
+        <button
+          onClick={handleLogout}
+          className="block text-left text-red-300 hover:underline mt-2"
+        >
+          Log Out
+        </button>
         {!user && (
           <Link to="/login" className="block hover:underline">Log In</Link>
         )}
