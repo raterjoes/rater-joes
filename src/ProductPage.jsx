@@ -37,6 +37,7 @@ import {
 import { useState as useCopyState } from "react";
 import React from "react";
 import { Helmet } from "react-helmet-async";
+import { saveProduct, unsaveProduct, getSavedProductIds } from './utils/savedListUtils';
 
 function UniversalWhatsappShareButton({ url }) {
   const handleClick = (e) => {
@@ -73,6 +74,8 @@ export default function ProductPage() {
   const [reviewLightboxIndex, setReviewLightboxIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [copied, setCopied] = useCopyState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const storage = getStorage();
 
@@ -247,6 +250,39 @@ export default function ProductPage() {
     return () => unsubscribe();
   }, [id]);
 
+  useEffect(() => {
+    if (!user || !product) {
+      setIsSaved(false);
+      return;
+    }
+    let ignore = false;
+    getSavedProductIds(user.uid).then(ids => {
+      if (!ignore) setIsSaved(ids.includes(product.id));
+    });
+    return () => { ignore = true; };
+  }, [user, product]);
+
+  const handleToggleSave = async () => {
+    if (!user) {
+      setShowLoginMessage(true);
+      return;
+    }
+    setSaving(true);
+    try {
+      if (isSaved) {
+        await unsaveProduct(user.uid, product.id);
+        setIsSaved(false);
+      } else {
+        await saveProduct(user.uid, product.id);
+        setIsSaved(true);
+      }
+    } catch (e) {
+      alert('Failed to update saved status.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!product) return <div className="text-center mt-10">Loading...</div>;
 
   const average =
@@ -286,7 +322,7 @@ export default function ProductPage() {
           {/* Product Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-8">
             <div>
-              <h1 className="text-4xl font-serif font-bold text-gray-800 mb-2">
+              <h1 className="text-4xl font-serif font-bold text-gray-800 mb-2 flex items-center gap-2">
                 {/* New badge */}
                 {product.newUntil && new Date() < new Date(product.newUntil) && (
                   <div className="mb-2">
@@ -296,6 +332,15 @@ export default function ProductPage() {
                   </div>
                 )}
                 {product.name}
+                <button
+                  onClick={handleToggleSave}
+                  disabled={saving}
+                  className={`ml-2 text-2xl focus:outline-none transition-opacity ${saving ? 'opacity-50' : ''}`}
+                  title={isSaved ? 'Remove from My Lists' : 'Save to My Lists'}
+                  style={{ color: isSaved ? '#e0245e' : '#bbb' }}
+                >
+                  {isSaved ? '♥' : '♡'}
+                </button>
               </h1>
               <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
                 {product.category}
@@ -311,7 +356,7 @@ export default function ProductPage() {
                 <UniversalWhatsappShareButton url={shareUrl} />
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(shareUrl);
+                    navigator.clipboard.writeText(`https://rater-joes.vercel.app/products/${id}`);
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1500);
                   }}
@@ -435,9 +480,7 @@ export default function ProductPage() {
           </div>
 
           {showLoginMessage ? (
-            <p className="text-sm text-red-600 italic mb-6">
-              You must be logged in to edit this product.
-            </p>
+            <div className="text-red-600 text-sm mb-2">Please log in to save products to your lists.</div>
           ) : (
             <p className="text-lg text-gray-700 leading-relaxed mb-2">
               {product.description}

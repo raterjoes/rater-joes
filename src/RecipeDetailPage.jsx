@@ -29,6 +29,7 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 import React from "react";
 import { Helmet } from "react-helmet-async";
+import { saveRecipe, unsaveRecipe, getSavedRecipeIds } from './utils/savedListUtils';
 
 function UniversalWhatsappShareButton({ url }) {
   const handleClick = (e) => {
@@ -60,6 +61,9 @@ export default function RecipeDetailPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const shareUrl = `https://rater-joes-next.vercel.app/recipe/${id}`;
+  const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,6 +112,18 @@ export default function RecipeDetailPage() {
     checkAdmin();
   }, [user]);
 
+  useEffect(() => {
+    if (!user || !recipe) {
+      setIsSaved(false);
+      return;
+    }
+    let ignore = false;
+    getSavedRecipeIds(user.uid).then(ids => {
+      if (!ignore) setIsSaved(ids.includes(id));
+    });
+    return () => { ignore = true; };
+  }, [user, recipe, id]);
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim() || !user) return;
@@ -143,6 +159,27 @@ export default function RecipeDetailPage() {
     }
   };
 
+  const handleToggleSave = async () => {
+    if (!user) {
+      setShowLoginMessage(true);
+      return;
+    }
+    setSaving(true);
+    try {
+      if (isSaved) {
+        await unsaveRecipe(user.uid, id);
+        setIsSaved(false);
+      } else {
+        await saveRecipe(user.uid, id);
+        setIsSaved(true);
+      }
+    } catch (e) {
+      alert('Failed to update saved status.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!recipe) {
     return (
       <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
@@ -175,7 +212,18 @@ export default function RecipeDetailPage() {
       </Helmet>
       <Navbar />
       <main className="flex-grow w-full max-w-3xl sm:max-w-3xl md:max-w-4xl lg:max-w-4xl mx-auto px-6 py-10 space-y-8">
-        <h1 className="text-3xl font-bold">{recipe.title}</h1>
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          {recipe.title}
+          <button
+            onClick={handleToggleSave}
+            disabled={saving}
+            className={`ml-2 text-2xl focus:outline-none transition-opacity ${saving ? 'opacity-50' : ''}`}
+            title={isSaved ? 'Remove from My Lists' : 'Save to My Lists'}
+            style={{ color: isSaved ? '#e0245e' : '#bbb' }}
+          >
+            {isSaved ? '♥' : '♡'}
+          </button>
+        </h1>
 
         {recipe.images?.length > 0 && (
           <div className="flex gap-3 overflow-x-auto">
@@ -212,7 +260,7 @@ export default function RecipeDetailPage() {
           <UniversalWhatsappShareButton url={shareUrl} />
           <button
             onClick={() => {
-              navigator.clipboard.writeText(shareUrl);
+              navigator.clipboard.writeText(`https://rater-joes.vercel.app/recipes/${id}`);
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             }}
@@ -365,6 +413,10 @@ export default function RecipeDetailPage() {
             </p>
           )}
         </div>
+
+        {showLoginMessage && (
+          <div className="text-red-600 text-sm mb-2">Please log in to save recipes to your lists.</div>
+        )}
       </main>
       <Footer />
     </div>
