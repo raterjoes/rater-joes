@@ -106,6 +106,7 @@ export default function App() {
         nickname: includeName ? nickname : null,
         userEmail: includeName ? userEmail : null,
         createdAt: serverTimestamp(),
+        userId: user.uid,
       });
       if (window.gtag) {
         window.gtag("event", "submit_review", {

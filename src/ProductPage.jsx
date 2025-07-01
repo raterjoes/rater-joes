@@ -102,39 +102,7 @@ export default function ProductPage() {
     }
   };  
 
-  const handleReviewSubmit = async (review) => {
-    if (!user) return;
-
-    const { text, rating, includeName } = review;
-    let nickname = null;
-    let userEmail = null;
-
-    if (includeName) {
-      try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          nickname = userDoc.data().nickname || null;
-        }
-        userEmail = user.email;
-      } catch (err) {
-        console.error("Error fetching nickname:", err);
-      }
-    }
-
-    try {
-      await addDoc(collection(db, "reviews"), {
-        productId: id,
-        text,
-        rating,
-        nickname: includeName ? nickname : null,
-        userEmail: includeName ? userEmail : null,
-        createdAt: serverTimestamp(),
-      });
-    } catch (err) {
-      console.error("Failed to submit review:", err);
-      alert("Failed to submit review.");
-    }
-  };
+  const handleReviewSubmit = () => {};
 
   const handleDeleteReview = async (reviewId) => {
     const confirmed = window.confirm("Are you sure you want to delete this review?");
@@ -563,7 +531,7 @@ export default function ProductPage() {
                     by {r.nickname || r.userEmail || "Anonymous"}
                   </p>
 
-                  {isAdmin && (
+                  {user && (user.email === r.userEmail || user.uid === r.userId) && (
                     <button
                       onClick={() => handleDeleteReview(r.id)}
                       className="text-red-600 text-xs mt-2 hover:underline"

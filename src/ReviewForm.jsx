@@ -63,6 +63,7 @@ export default function ReviewForm({ onSubmit }) {
         nickname: includeName ? nickname : null,
         userEmail: includeName ? user.email : null,
         createdAt: serverTimestamp(),
+        userId: user.uid,
       });
 
       const imageFiles = imageInputs.filter(Boolean);
