@@ -23,6 +23,8 @@
     "react-router-dom": "^7.4.1",
     "react-share": "^5.2.2",
     "sharp": "^0.34.2",
+    "slate": "^0.117.2",
+    "slate-react": "^0.117.3",
     "swiper": "^11.2.6",
     "yet-another-react-lightbox": "^3.22.0"
   },

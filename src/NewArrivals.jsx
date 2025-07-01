@@ -39,9 +39,7 @@ export default function NewArrivals() {
         />
         <h1 className="text-3xl font-bold mb-6">🆕 New Arrivals</h1>
         <p className="mb-8">Check out the latest products added to Rater Joe's!</p>
-        {loading ? (
-          <div className="text-center text-lg">Loading...</div>
-        ) : products.length === 0 ? (
+        {loading ? null : products.length === 0 ? (
           <div className="text-center text-lg">No new arrivals at the moment.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
