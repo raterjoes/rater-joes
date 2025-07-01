@@ -531,7 +531,7 @@ export default function ProductPage() {
                     by {r.nickname || r.userEmail || "Anonymous"}
                   </p>
 
-                  {user && (user.email === r.userEmail || user.uid === r.userId) && (
+                  {(isAdmin || (user && (user.email === r.userEmail || user.uid === r.userId))) && (
                     <button
                       onClick={() => handleDeleteReview(r.id)}
                       className="text-red-600 text-xs mt-2 hover:underline"
