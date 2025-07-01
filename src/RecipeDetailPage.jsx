@@ -229,6 +229,11 @@ export default function RecipeDetailPage() {
           </button>
         </h1>
 
+        {/* Show submitter if present */}
+        {recipe.nickname && (
+          <p className="text-sm text-gray-500 mb-2">Submitted by: {recipe.nickname}</p>
+        )}
+
         {recipe.images?.length > 0 && (
           <div className="flex gap-3 overflow-x-auto">
             {recipe.images.map((url, index) => (

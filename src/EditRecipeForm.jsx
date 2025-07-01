@@ -27,6 +27,7 @@ export default function EditRecipeForm() {
   const [imageInputs, setImageInputs] = useState([null]);
   const [existingImages, setExistingImages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [includeName, setIncludeName] = useState(false);
 
   useEffect(() => {
     if (!user) return; // Wait for user to load
@@ -48,6 +49,7 @@ export default function EditRecipeForm() {
         setSteps(data.steps);
         setSelectedProducts(data.productIds || []);
         setExistingImages(data.images || []);
+        setIncludeName(!!data.nickname); // Default checked if nickname exists
       }
   
       const productSnap = await getDocs(collection(db, "products"));
@@ -124,6 +126,19 @@ export default function EditRecipeForm() {
       }
     }
   
+    // Fetch nickname if includeName is checked
+    let nickname = null;
+    if (includeName) {
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          nickname = userDoc.data().nickname || null;
+        }
+      } catch (err) {
+        nickname = null;
+      }
+    }
+  
     // ✅ Update Firestore recipe document
     await updateDoc(doc(db, "recipes", id), {
       title,
@@ -131,6 +146,7 @@ export default function EditRecipeForm() {
       steps,
       productIds: selectedProducts,
       images: updatedImages,
+      nickname: includeName ? nickname : null,
     });
   
     alert("Recipe updated!");
@@ -293,6 +309,20 @@ export default function EditRecipeForm() {
                   )}
                 </div>
               ))}
+            </div>
+  
+            {/* Username checkbox */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="includeName"
+                checked={includeName}
+                onChange={e => setIncludeName(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <label htmlFor="includeName" className="text-sm">
+                Include my username in this recipe
+              </label>
             </div>
   
             <button

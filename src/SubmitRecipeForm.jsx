@@ -6,6 +6,8 @@ import {
   getDocs,
   addDoc,
   serverTimestamp,
+  getDoc,
+  doc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "./AuthContext";
@@ -22,6 +24,7 @@ export default function SubmitRecipeForm() {
   const [products, setProducts] = useState([]);
   const [imageInputs, setImageInputs] = useState([null]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [includeName, setIncludeName] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -79,6 +82,18 @@ export default function SubmitRecipeForm() {
 
     await Promise.all(uploadPromises);
 
+    let nickname = null;
+    if (includeName) {
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          nickname = userDoc.data().nickname || null;
+        }
+      } catch (err) {
+        nickname = null;
+      }
+    }
+
     await addDoc(collection(db, "recipes"), {
       title,
       description,
@@ -87,6 +102,7 @@ export default function SubmitRecipeForm() {
       images: imageUrls,
       createdAt: serverTimestamp(),
       userId: user.uid,
+      nickname: includeName ? nickname : null,
       approved: false,
     });
 
@@ -96,6 +112,7 @@ export default function SubmitRecipeForm() {
     setSteps("");
     setSelectedProducts([]);
     setImageInputs([null]);
+    setIncludeName(true);
     alert("Recipe submitted!");
   };
 
@@ -239,6 +256,19 @@ export default function SubmitRecipeForm() {
             </div>
           );
         })}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="includeName"
+          checked={includeName}
+          onChange={e => setIncludeName(e.target.checked)}
+          className="w-4 h-4"
+        />
+        <label htmlFor="includeName" className="text-sm">
+          Include my username in this recipe
+        </label>
       </div>
 
       <button
