@@ -75,6 +75,7 @@ export default function ChatBoard() {
   const [newPostImages, setNewPostImages] = useState([null]);
   const [comments, setComments] = useState({});
   const [likes, setLikes] = useState({});
+  const [commentLikes, setCommentLikes] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [commentImages, setCommentImages] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
@@ -85,6 +86,7 @@ export default function ChatBoard() {
   const [lightboxImages, setLightboxImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [likerNicknames, setLikerNicknames] = useState({});
+  const [commentLikerNicknames, setCommentLikerNicknames] = useState({});
   const [products, setProducts] = useState([]);
   const [newPostProductIds, setNewPostProductIds] = useState([]);
   const [productSearch, setProductSearch] = useState("");
@@ -193,7 +195,7 @@ export default function ChatBoard() {
         setComments((prev) => ({ ...prev, [post.id]: commentList }));
       });
 
-      // Listen for likes
+      // Listen for post likes
       const likesRef = collection(db, "chat_posts", post.id, "likes");
       onSnapshot(likesRef, (snapshot) => {
         setLikes((prev) => ({
@@ -203,6 +205,28 @@ export default function ChatBoard() {
       });
     });
   }, [posts]);
+
+  // Set up comment likes listeners
+  useEffect(() => {
+    const unsubscribers = [];
+    
+    Object.entries(comments).forEach(([postId, commentList]) => {
+      commentList.forEach((comment) => {
+        const commentLikesRef = collection(db, "chat_posts", postId, "comments", comment.id, "likes");
+        const unsubscribe = onSnapshot(commentLikesRef, (snapshot) => {
+          setCommentLikes((prev) => ({
+            ...prev,
+            [`${postId}-${comment.id}`]: snapshot.docs.map((doc) => doc.id)
+          }));
+        });
+        unsubscribers.push(unsubscribe);
+      });
+    });
+
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe());
+    };
+  }, [comments]);
 
   useEffect(() => {
     // Fetch nicknames for all likers of all posts
@@ -225,6 +249,28 @@ export default function ChatBoard() {
     }
     if (Object.keys(likes).length > 0) fetchNicknames();
   }, [likes]);
+
+  useEffect(() => {
+    // Fetch nicknames for all likers of all comments
+    async function fetchCommentNicknames() {
+      const allCommentLikerIds = new Set();
+      Object.values(commentLikes).forEach((ids) => ids && ids.forEach((id) => allCommentLikerIds.add(id)));
+      const nicknameMap = {};
+      await Promise.all(
+        Array.from(allCommentLikerIds).map(async (uid) => {
+          if (!uid) return;
+          try {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            nicknameMap[uid] = userDoc.exists() ? (userDoc.data().nickname || userDoc.data().email || "Anonymous") : "Anonymous";
+          } catch {
+            nicknameMap[uid] = "Anonymous";
+          }
+        })
+      );
+      setCommentLikerNicknames(nicknameMap);
+    }
+    if (Object.keys(commentLikes).length > 0) fetchCommentNicknames();
+  }, [commentLikes]);
 
   useEffect(() => {
     // Fetch products for tagging
@@ -326,6 +372,23 @@ export default function ChatBoard() {
       await deleteDoc(likeRef);
     } else {
       await setDoc(likeRef, { likedAt: serverTimestamp() });
+    }
+  };
+
+  const toggleCommentLike = async (postId, commentId) => {
+    if (!user) return;
+    
+    try {
+      const likeRef = doc(db, "chat_posts", postId, "comments", commentId, "likes", user.uid);
+      const userHasLiked = commentLikes[`${postId}-${commentId}`]?.includes(user.uid);
+
+      if (userHasLiked) {
+        await deleteDoc(likeRef);
+      } else {
+        await setDoc(likeRef, { likedAt: serverTimestamp() });
+      }
+    } catch (error) {
+      console.error("Error toggling comment like:", error);
     }
   };
 
@@ -619,8 +682,8 @@ export default function ChatBoard() {
             </button>
 
             <div
-              className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                expandedPosts[post.id] ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+              className={`transition-all duration-300 ease-in-out ${
+                expandedPosts[post.id] ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"
               }`}
             >
               <div className="space-y-2 mt-2">
@@ -634,19 +697,27 @@ export default function ChatBoard() {
                         className="mt-1 max-w-full sm:w-40 h-auto rounded"
                       />
                     )}
-                    <p className="text-xs text-gray-500">
-                      by {comment.nickname} • {formatTimestamp(comment.createdAt)}
-                      {(isAdmin || user?.uid === comment.userId) && (
-                        <button
-                          onClick={() =>
-                            deleteComment(post.id, comment.id, comment.image)
-                          }
-                          className="ml-2 text-red-500 hover:underline"
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </p>
+                    <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                      <p>
+                        by {comment.nickname} • {formatTimestamp(comment.createdAt)}
+                        {(isAdmin || user?.uid === comment.userId) && (
+                          <button
+                            onClick={() =>
+                              deleteComment(post.id, comment.id, comment.image)
+                            }
+                            className="ml-2 text-red-500 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </p>
+                      <div className="relative z-20">
+                        <LikePopover
+                          likers={(commentLikes[`${post.id}-${comment.id}`] || []).map((uid) => commentLikerNicknames[uid] || "Anonymous")}
+                          onClick={() => toggleCommentLike(post.id, comment.id)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
