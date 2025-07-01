@@ -89,6 +89,7 @@ export default function ReviewForm({ onSubmit }) {
       setIncludeName(true);
       setImageInputs([null]);
       setInputKey((prev) => prev + 1);
+      setIsOpen(false); // Close the form after successful submission
     } catch (err) {
       console.error("Error submitting review:", err);
       alert("Failed to submit review. Please try again.");
