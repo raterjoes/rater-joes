@@ -34,6 +34,7 @@ import usePageTracking from "./usePageTracking";
 export default function App() {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
+  const [reviewsByProduct, setReviewsByProduct] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const debounceTimeout = useRef();
@@ -52,6 +53,21 @@ export default function App() {
       }
     };
     loadProducts();
+  }, []);
+
+  useEffect(() => {
+    // Fetch all reviews and group by productId
+    const fetchReviews = async () => {
+      const snap = await getDocs(collection(db, "reviews"));
+      const reviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const grouped = {};
+      for (const review of reviews) {
+        if (!grouped[review.productId]) grouped[review.productId] = [];
+        grouped[review.productId].push(review);
+      }
+      setReviewsByProduct(grouped);
+    };
+    fetchReviews();
   }, []);
 
   useEffect(() => {
@@ -209,6 +225,7 @@ export default function App() {
                       images={product.images}
                       thumbnailUrls={product.thumbnailUrls}
                       description={product.description}
+                      reviews={reviewsByProduct[product.id] || []}
                       onReviewSubmit={handleReviewSubmit}
                       user={user}
                       seasonal={product.seasonal}
@@ -248,6 +265,7 @@ export default function App() {
                   products={catProducts}
                   onReviewSubmit={handleReviewSubmit}
                   user={user}
+                  reviewsByProduct={reviewsByProduct}
                 />
               );
             })
@@ -261,7 +279,7 @@ export default function App() {
   );
 }
 
-function CategorySection({ id, title, products, onReviewSubmit, user }) {
+function CategorySection({ id, title, products, onReviewSubmit, user, reviewsByProduct }) {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
@@ -299,6 +317,7 @@ function CategorySection({ id, title, products, onReviewSubmit, user }) {
                 images={product.images}
                 thumbnailUrls={product.thumbnailUrls}
                 description={product.description}
+                reviews={reviewsByProduct[product.id] || []}
                 onReviewSubmit={onReviewSubmit}
                 user={user}
                 seasonal={product.seasonal}

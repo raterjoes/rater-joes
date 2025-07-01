@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -33,6 +33,7 @@ function getCurrentSeason() {
 
 export default function Seasonal() {
   const [seasonalProducts, setSeasonalProducts] = useState({});
+  const [reviewsByProduct, setReviewsByProduct] = useState({});
   const currentSeason = getCurrentSeason();
 
   useEffect(() => {
@@ -53,6 +54,21 @@ export default function Seasonal() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    // Fetch all reviews and group by productId
+    const fetchReviews = async () => {
+      const snap = await getDocs(collection(db, "reviews"));
+      const reviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const grouped = {};
+      for (const review of reviews) {
+        if (!grouped[review.productId]) grouped[review.productId] = [];
+        grouped[review.productId].push(review);
+      }
+      setReviewsByProduct(grouped);
+    };
+    fetchReviews();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-orange-50">
       <Navbar />
@@ -68,7 +84,7 @@ export default function Seasonal() {
         />
 
         <h2 className="text-2xl font-semibold mb-4">{currentSeason}</h2>
-        <ProductGrid products={seasonalProducts[currentSeason] || []} />
+        <ProductGrid products={seasonalProducts[currentSeason] || []} reviewsByProduct={reviewsByProduct} />
 
         {/* Add gap before other seasons banner */}
         <div className="mb-10"></div>
@@ -84,7 +100,7 @@ export default function Seasonal() {
             .map((season) => (
               <div key={season}>
                 <h3 className="text-2xl font-semibold mb-4">{season}</h3>
-                <ProductGrid products={seasonalProducts[season] || []} />
+                <ProductGrid products={seasonalProducts[season] || []} reviewsByProduct={reviewsByProduct} />
               </div>
             ))}
         </div>
@@ -94,7 +110,7 @@ export default function Seasonal() {
   );
 }
 
-function ProductGrid({ products }) {
+function ProductGrid({ products, reviewsByProduct }) {
   if (products.length === 0) {
     return <p className="text-gray-500 italic">No seasonal products yet.</p>;
   }
@@ -110,7 +126,7 @@ function ProductGrid({ products }) {
           image={product.image}
           images={product.images}
           thumbnailUrls={product.thumbnailUrls}
-          reviews={product.reviews || []}
+          reviews={reviewsByProduct ? (reviewsByProduct[product.id] || []) : []}
           seasonal={product.seasonal}
           season={product.season}
           newUntil={product.newUntil}

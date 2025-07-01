@@ -9,6 +9,7 @@ import newArrivalsHeader from "./assets/category-banners/newarrivals.webp";
 export default function NewArrivals() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reviewsByProduct, setReviewsByProduct] = useState({});
 
   useEffect(() => {
     const fetchNewArrivals = async () => {
@@ -25,6 +26,21 @@ export default function NewArrivals() {
       setLoading(false);
     };
     fetchNewArrivals();
+  }, []);
+
+  useEffect(() => {
+    // Fetch all reviews and group by productId
+    const fetchReviews = async () => {
+      const snap = await getDocs(collection(db, "reviews"));
+      const reviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const grouped = {};
+      for (const review of reviews) {
+        if (!grouped[review.productId]) grouped[review.productId] = [];
+        grouped[review.productId].push(review);
+      }
+      setReviewsByProduct(grouped);
+    };
+    fetchReviews();
   }, []);
 
   return (
@@ -44,7 +60,7 @@ export default function NewArrivals() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} productId={product.id} {...product} />
+              <ProductCard key={product.id} productId={product.id} {...product} reviews={reviewsByProduct[product.id] || []} />
             ))}
           </div>
         )}
