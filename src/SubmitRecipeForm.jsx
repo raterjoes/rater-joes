@@ -36,6 +36,7 @@ export default function SubmitRecipeForm() {
   const [cropIndex, setCropIndex] = useState(null);
   const [cropperInstance, setCropperInstance] = useState(null);
   const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -158,7 +159,7 @@ export default function SubmitRecipeForm() {
     setSelectedProducts([]);
     setImageInputs([null]);
     setIncludeName(true);
-    alert("Recipe submitted!");
+    setSubmissionSuccess(true);
   };
 
   const handleProductToggle = (productId) => {
@@ -169,219 +170,246 @@ export default function SubmitRecipeForm() {
     );
   };
 
+  const handleResetForm = () => {
+    setSubmissionSuccess(false);
+    setTitle("");
+    setDescription("");
+    setSteps("");
+    setSelectedProducts([]);
+    setImageInputs([null]);
+    setIncludeName(true);
+    setImagePreviewUrls([]);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 bg-white shadow rounded space-y-4">
-      <h2 className="text-2xl font-bold mb-2">Submit a Recipe</h2>
+    <div className="max-w-2xl mx-auto p-4 bg-white shadow rounded space-y-4">
+      {submissionSuccess ? (
+        <>
+          <div className="mt-4 p-3 bg-green-100 text-green-800 rounded text-center font-semibold">
+            Recipe submitted! Thank you for sharing. It will appear after approval.
+          </div>
+          <button
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mx-auto block"
+            onClick={handleResetForm}
+          >
+            Submit another recipe
+          </button>
+        </>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <h2 className="text-2xl font-bold mb-2">Submit a Recipe</h2>
 
-      <input
-        type="text"
-        placeholder="Recipe title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full p-2 border rounded"
-        required
-      />
+          <input
+            type="text"
+            placeholder="Recipe title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
 
-      <textarea
-        placeholder="Short description (optional)"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full p-2 border rounded"
-        rows={2}
-      />
+          <textarea
+            placeholder="Short description (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full p-2 border rounded"
+            rows={2}
+          />
 
-      <textarea
-        placeholder="Steps / ingredients"
-        value={steps}
-        onChange={(e) => setSteps(e.target.value)}
-        className="w-full p-2 border rounded"
-        rows={5}
-        required
-      />
+          <textarea
+            placeholder="Steps / ingredients"
+            value={steps}
+            onChange={(e) => setSteps(e.target.value)}
+            className="w-full p-2 border rounded"
+            rows={5}
+            required
+          />
 
-      <div className="space-y-2">
-        <p className="font-semibold">Tag Trader Joe's products:</p>
+          <div className="space-y-2">
+            <p className="font-semibold">Tag Trader Joe's products:</p>
 
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Type to search products..."
-          className="w-full p-2 border rounded"
-        />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Type to search products..."
+              className="w-full p-2 border rounded"
+            />
 
-        {searchQuery && (
-          <ul className="bg-white border rounded shadow max-h-40 overflow-y-auto">
-            {products
-              .filter(
-                (p) =>
-                  p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                  !selectedProducts.includes(p.id)
-              )
-              .map((p) => (
-                <li
-                  key={p.id}
-                  onClick={() => {
-                    setSelectedProducts([...selectedProducts, p.id]);
-                    setSearchQuery(""); // Clear search after select
-                  }}
-                  className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
-                >
-                  {p.name}
-                </li>
-              ))}
-          </ul>
-        )}
+            {searchQuery && (
+              <ul className="bg-white border rounded shadow max-h-40 overflow-y-auto">
+                {products
+                  .filter(
+                    (p) =>
+                      p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                      !selectedProducts.includes(p.id)
+                  )
+                  .map((p) => (
+                    <li
+                      key={p.id}
+                      onClick={() => {
+                        setSelectedProducts([...selectedProducts, p.id]);
+                        setSearchQuery(""); // Clear search after select
+                      }}
+                      className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                    >
+                      {p.name}
+                    </li>
+                  ))}
+              </ul>
+            )}
 
-        {selectedProducts.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {selectedProducts.map((id) => {
-              const product = products.find((p) => p.id === id);
+            {selectedProducts.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedProducts.map((id) => {
+                  const product = products.find((p) => p.id === id);
+                  return (
+                    <span
+                      key={id}
+                      className="bg-rose-200 text-rose-800 px-2 py-1 rounded-full text-xs flex items-center gap-1"
+                    >
+                      {product?.name}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedProducts((prev) =>
+                            prev.filter((pid) => pid !== id)
+                          )
+                        }
+                        className="text-rose-800 hover:text-red-600"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium mb-1">Upload images:</label>
+            {imageInputs.map((file, index) => {
+              const isNextEmptyInput =
+                index > 0 && imageInputs[index] === null && imageInputs[index - 1] !== null;
               return (
-                <span
-                  key={id}
-                  className="bg-rose-200 text-rose-800 px-2 py-1 rounded-full text-xs flex items-center gap-1"
-                >
-                  {product?.name}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedProducts((prev) =>
-                        prev.filter((pid) => pid !== id)
-                      )
-                    }
-                    className="text-rose-800 hover:text-red-600"
-                  >
-                    ×
-                  </button>
-                </span>
+                <div key={index} className="relative mt-2 flex items-center gap-4">
+                  {isNextEmptyInput && (
+                    <p className="text-sm font-medium text-gray-700 mb-1">Add another image?</p>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(index, e.target.files[0])}
+                    className="w-full max-w-xs p-2 border rounded text-sm"
+                  />
+                  {file && (
+                    <>
+                      <img
+                        src={imagePreviewUrls[index]}
+                        alt={`Preview ${index + 1}`}
+                        className="w-24 h-24 object-cover rounded border cursor-pointer"
+                        onClick={() => {
+                          setLightboxIndex(index);
+                          setLightboxOpen(true);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        className="ml-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      >
+                        ✖
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openCropModal(index)}
+                        className="ml-2 bg-blue-600 text-white rounded px-2 py-1 text-xs"
+                      >
+                        Crop/Rotate
+                      </button>
+                    </>
+                  )}
+                </div>
               );
             })}
           </div>
-        )}
-      </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium mb-1">Upload images:</label>
-        {imageInputs.map((file, index) => {
-          const isNextEmptyInput =
-            index > 0 && imageInputs[index] === null && imageInputs[index - 1] !== null;
-          return (
-            <div key={index} className="relative mt-2 flex items-center gap-4">
-              {isNextEmptyInput && (
-                <p className="text-sm font-medium text-gray-700 mb-1">Add another image?</p>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageChange(index, e.target.files[0])}
-                className="w-full max-w-xs p-2 border rounded text-sm"
-              />
-              {file && (
-                <>
-                  <img
-                    src={imagePreviewUrls[index]}
-                    alt={`Preview ${index + 1}`}
-                    className="w-24 h-24 object-cover rounded border cursor-pointer"
-                    onClick={() => {
-                      setLightboxIndex(index);
-                      setLightboxOpen(true);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    className="ml-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  >
-                    ✖
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openCropModal(index)}
-                    className="ml-2 bg-blue-600 text-white rounded px-2 py-1 text-xs"
-                  >
-                    Crop/Rotate
-                  </button>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="includeName"
-          checked={includeName}
-          onChange={e => setIncludeName(e.target.checked)}
-          className="w-4 h-4"
-        />
-        <label htmlFor="includeName" className="text-sm">
-          Include my username in this recipe
-        </label>
-      </div>
-
-      <button
-        type="submit"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        Submit Recipe
-      </button>
-
-      {lightboxOpen && (
-        <Lightbox
-          open={lightboxOpen}
-          close={() => setLightboxOpen(false)}
-          index={lightboxIndex}
-          slides={imagePreviewUrls.filter(Boolean).map((src) => ({ src }))}
-          plugins={[Zoom]}
-          zoom={{ maxZoomPixelRatio: 4 }}
-        />
-      )}
-
-      {cropModalOpen && cropIndex != null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full flex flex-col items-center">
-            <Cropper
-              src={imagePreviewUrls[cropIndex]}
-              style={{ height: 300, width: "100%" }}
-              // aspectRatio={1}
-              guides={true}
-              viewMode={1}
-              dragMode="move"
-              scalable={true}
-              cropBoxResizable={true}
-              cropBoxMovable={true}
-              rotatable={true}
-              onInitialized={setCropperInstance}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="includeName"
+              checked={includeName}
+              onChange={e => setIncludeName(e.target.checked)}
+              className="w-4 h-4"
             />
-            <div className="flex gap-2 mt-4">
-              <button
-                type="button"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={handleCrop}
-              >
-                Crop & Save
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-                onClick={() => setCropModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 bg-blue-200 text-blue-800 rounded hover:bg-blue-300"
-                onClick={() => cropperInstance && cropperInstance.rotate(90)}
-              >
-                Rotate 90°
-              </button>
-            </div>
+            <label htmlFor="includeName" className="text-sm">
+              Include my username in this recipe
+            </label>
           </div>
-        </div>
+
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Submit Recipe
+          </button>
+
+          {lightboxOpen && (
+            <Lightbox
+              open={lightboxOpen}
+              close={() => setLightboxOpen(false)}
+              index={lightboxIndex}
+              slides={imagePreviewUrls.filter(Boolean).map((src) => ({ src }))}
+              plugins={[Zoom]}
+              zoom={{ maxZoomPixelRatio: 4 }}
+            />
+          )}
+
+          {cropModalOpen && cropIndex != null && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+              <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full flex flex-col items-center">
+                <Cropper
+                  src={imagePreviewUrls[cropIndex]}
+                  style={{ height: 300, width: "100%" }}
+                  // aspectRatio={1}
+                  guides={true}
+                  viewMode={1}
+                  dragMode="move"
+                  scalable={true}
+                  cropBoxResizable={true}
+                  cropBoxMovable={true}
+                  rotatable={true}
+                  onInitialized={setCropperInstance}
+                />
+                <div className="flex gap-2 mt-4">
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    onClick={handleCrop}
+                  >
+                    Crop & Save
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                    onClick={() => setCropModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-blue-200 text-blue-800 rounded hover:bg-blue-300"
+                    onClick={() => cropperInstance && cropperInstance.rotate(90)}
+                  >
+                    Rotate 90°
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </form>
       )}
-    </form>
+    </div>
   );
 }
