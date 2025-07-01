@@ -12,6 +12,11 @@ import { db, getStorage } from "./firebase";
 import { useAuth } from "./AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
+import Cropper from "react-cropper";
+import "./assets/cropper.css";
 
 export default function EditRecipeForm() {
   const { id } = useParams();
@@ -28,6 +33,17 @@ export default function EditRecipeForm() {
   const [existingImages, setExistingImages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [includeName, setIncludeName] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropIndex, setCropIndex] = useState(null);
+  const [cropperInstance, setCropperInstance] = useState(null);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
+  const [existingCropModalOpen, setExistingCropModalOpen] = useState(false);
+  const [existingCropIndex, setExistingCropIndex] = useState(null);
+  const [existingCropperInstance, setExistingCropperInstance] = useState(null);
+  const [existingLightboxOpen, setExistingLightboxOpen] = useState(false);
+  const [existingLightboxIndex, setExistingLightboxIndex] = useState(0);
 
   useEffect(() => {
     if (!user) return; // Wait for user to load
@@ -64,12 +80,19 @@ export default function EditRecipeForm() {
   }, [id, user, navigate]);  
 
   const handleImageChange = (index, file) => {
+    if (!file) return;
     const updated = [...imageInputs];
     updated[index] = file;
     setImageInputs(updated);
 
+    // Update preview URLs
+    const previewUrls = [...imagePreviewUrls];
+    previewUrls[index] = URL.createObjectURL(file);
+    setImagePreviewUrls(previewUrls);
+
     if (updated.every((f) => f !== null)) {
       setImageInputs([...updated, null]);
+      setImagePreviewUrls([...previewUrls, null]);
     }
   };
 
@@ -82,12 +105,16 @@ export default function EditRecipeForm() {
   const handleRemoveNewImage = (index) => {
     const updated = [...imageInputs];
     updated.splice(index, 1);
+    const previewUrls = [...imagePreviewUrls];
+    previewUrls.splice(index, 1);
 
     if (updated.length === 0 || updated.every((f) => f !== null)) {
       updated.push(null);
+      previewUrls.push(null);
     }
 
     setImageInputs(updated);
+    setImagePreviewUrls(previewUrls);
   };
 
   const handleSubmit = async (e) => {
@@ -157,6 +184,29 @@ export default function EditRecipeForm() {
     setSelectedProducts((prev) =>
       prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
+  };
+
+  const openCropModal = (index) => {
+    setCropIndex(index);
+    setCropModalOpen(true);
+  };
+
+  const handleCrop = () => {
+    if (!cropperInstance || cropIndex == null) return;
+    cropperInstance.getCroppedCanvas().toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], imageInputs[cropIndex].name, { type: blob.type });
+        const updated = [...imageInputs];
+        updated[cropIndex] = file;
+        setImageInputs(updated);
+        // Update preview
+        const previewUrls = [...imagePreviewUrls];
+        previewUrls[cropIndex] = URL.createObjectURL(file);
+        setImagePreviewUrls(previewUrls);
+      }
+      setCropModalOpen(false);
+      setCropIndex(null);
+    }, imageInputs[cropIndex].type);
   };
 
   if (!recipe) return <p className="p-4">Loading recipe...</p>;
@@ -266,7 +316,11 @@ export default function EditRecipeForm() {
                     <img
                       src={url}
                       alt={`Image ${index + 1}`}
-                      className="w-24 h-24 object-cover rounded border"
+                      className="w-24 h-24 object-cover rounded border cursor-pointer"
+                      onClick={() => {
+                        setExistingLightboxIndex(index);
+                        setExistingLightboxOpen(true);
+                      }}
                     />
                     <button
                       type="button"
@@ -275,40 +329,68 @@ export default function EditRecipeForm() {
                     >
                       ✖
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExistingCropIndex(index);
+                        setExistingCropModalOpen(true);
+                      }}
+                      className="absolute bottom-[-8px] right-[-8px] bg-blue-600 text-white rounded px-2 py-1 text-xs"
+                    >
+                      Crop/Rotate
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
   
-            {/* New Image Uploads */}
-            <div>
-              <p className="font-semibold">Upload New Images:</p>
-              {imageInputs.map((file, index) => (
-                <div key={index} className="relative mt-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageChange(index, e.target.files[0])}
-                    className="w-full p-2 border rounded"
-                  />
-                  {file && (
-                    <div className="relative inline-block mt-2">
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Preview ${index + 1}`}
-                        className="w-24 h-24 object-cover rounded border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveNewImage(index)}
-                        className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                      >
-                        ✖
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+            {/* New image upload UI with preview, crop, rotate, and lightbox */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium mb-1">Upload new images:</label>
+              {imageInputs.map((file, index) => {
+                const isNextEmptyInput =
+                  index > 0 && imageInputs[index] === null && imageInputs[index - 1] !== null;
+                return (
+                  <div key={index} className="relative mt-2 flex items-center gap-4">
+                    {isNextEmptyInput && (
+                      <p className="text-sm font-medium text-gray-700 mb-1">Add another image?</p>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(index, e.target.files[0])}
+                      className="w-full max-w-xs p-2 border rounded text-sm"
+                    />
+                    {file && (
+                      <>
+                        <img
+                          src={imagePreviewUrls[index]}
+                          alt={`Preview ${index + 1}`}
+                          className="w-24 h-24 object-cover rounded border cursor-pointer"
+                          onClick={() => {
+                            setLightboxIndex(index);
+                            setLightboxOpen(true);
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewImage(index)}
+                          className="ml-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        >
+                          ✖
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openCropModal(index)}
+                          className="ml-2 bg-blue-600 text-white rounded px-2 py-1 text-xs"
+                        >
+                          Crop/Rotate
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
   
             {/* Username checkbox */}
@@ -336,6 +418,145 @@ export default function EditRecipeForm() {
       </main>
   
       <Footer />
+  
+      {/* Lightbox and Crop Modal INSIDE the return */}
+      {lightboxOpen && (
+        <Lightbox
+          open={lightboxOpen}
+          close={() => setLightboxOpen(false)}
+          index={lightboxIndex}
+          slides={imagePreviewUrls.filter(Boolean).map((src) => ({ src }))}
+          plugins={[Zoom]}
+          zoom={{ maxZoomPixelRatio: 4 }}
+        />
+      )}
+  
+      {cropModalOpen && cropIndex != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full flex flex-col items-center">
+            <Cropper
+              src={imagePreviewUrls[cropIndex]}
+              style={{ height: 300, width: "100%" }}
+              // aspectRatio={1}
+              guides={true}
+              viewMode={1}
+              dragMode="move"
+              scalable={true}
+              cropBoxResizable={true}
+              cropBoxMovable={true}
+              rotatable={true}
+              onInitialized={setCropperInstance}
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={handleCrop}
+              >
+                Crop & Save
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                onClick={() => setCropModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-200 text-blue-800 rounded hover:bg-blue-300"
+                onClick={() => cropperInstance && cropperInstance.rotate(90)}
+              >
+                Rotate 90°
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+  
+      {/* Lightbox for existing images */}
+      {existingLightboxOpen && (
+        <Lightbox
+          open={existingLightboxOpen}
+          close={() => setExistingLightboxOpen(false)}
+          index={existingLightboxIndex}
+          slides={existingImages.map((src) => ({ src }))}
+          plugins={[Zoom]}
+          zoom={{ maxZoomPixelRatio: 4 }}
+        />
+      )}
+  
+      {/* Crop modal for existing images */}
+      {existingCropModalOpen && existingCropIndex != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full flex flex-col items-center">
+            <Cropper
+              src={existingImages[existingCropIndex]}
+              style={{ height: 300, width: "100%" }}
+              guides={true}
+              viewMode={1}
+              dragMode="move"
+              scalable={true}
+              cropBoxResizable={true}
+              cropBoxMovable={true}
+              rotatable={true}
+              onInitialized={setExistingCropperInstance}
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={async () => {
+                  if (!existingCropperInstance || existingCropIndex == null) return;
+                  existingCropperInstance.getCroppedCanvas().toBlob(async (blob) => {
+                    if (blob) {
+                      // Upload new image
+                      const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+                      const fileName = `cropped-${uniqueSuffix}.png`;
+                      const imageRef = ref(await getStorage(), `recipe-images/${fileName}`);
+                      await uploadBytes(imageRef, blob);
+                      const url = await getDownloadURL(imageRef);
+                      // Delete old image from storage
+                      try {
+                        const path = decodeURIComponent(
+                          new URL(existingImages[existingCropIndex]).pathname.split("/o/")[1].split("?")[0]
+                        );
+                        await deleteObject(ref(await getStorage(), path));
+                      } catch (err) {
+                        console.warn("Failed to delete old image from storage:", err);
+                      }
+                      // Update state
+                      setExistingImages((prev) => {
+                        const updated = [...prev];
+                        updated[existingCropIndex] = url;
+                        return updated;
+                      });
+                    }
+                    setExistingCropModalOpen(false);
+                    setExistingCropIndex(null);
+                  }, "image/png");
+                }}
+              >
+                Crop & Save
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                onClick={() => setExistingCropModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-200 text-blue-800 rounded hover:bg-blue-300"
+                onClick={() => existingCropperInstance && existingCropperInstance.rotate(90)}
+              >
+                Rotate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );  
 }

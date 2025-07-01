@@ -11,6 +11,11 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "./AuthContext";
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
+import Cropper from "react-cropper";
+import "./assets/cropper.css";
 
 export default function SubmitRecipeForm() {
   const { user } = useAuth();
@@ -25,6 +30,12 @@ export default function SubmitRecipeForm() {
   const [imageInputs, setImageInputs] = useState([null]);
   const [searchQuery, setSearchQuery] = useState("");
   const [includeName, setIncludeName] = useState(true);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropIndex, setCropIndex] = useState(null);
+  const [cropperInstance, setCropperInstance] = useState(null);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -44,24 +55,58 @@ export default function SubmitRecipeForm() {
   }, [prefillProductId]);
 
   const handleImageChange = (index, file) => {
+    if (!file) return;
     const updated = [...imageInputs];
     updated[index] = file;
     setImageInputs(updated);
 
+    // Update preview URLs
+    const previewUrls = [...imagePreviewUrls];
+    previewUrls[index] = URL.createObjectURL(file);
+    setImagePreviewUrls(previewUrls);
+
     if (updated.every((f) => f !== null)) {
       setImageInputs([...updated, null]);
+      setImagePreviewUrls([...previewUrls, null]);
     }
   };
 
   const handleRemoveImage = (index) => {
     const updated = [...imageInputs];
     updated.splice(index, 1);
+    const previewUrls = [...imagePreviewUrls];
+    previewUrls.splice(index, 1);
 
     if (updated.length === 0 || updated.every((f) => f !== null)) {
       updated.push(null);
+      previewUrls.push(null);
     }
 
     setImageInputs(updated);
+    setImagePreviewUrls(previewUrls);
+  };
+
+  const openCropModal = (index) => {
+    setCropIndex(index);
+    setCropModalOpen(true);
+  };
+
+  const handleCrop = () => {
+    if (!cropperInstance || cropIndex == null) return;
+    cropperInstance.getCroppedCanvas().toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], imageInputs[cropIndex].name, { type: blob.type });
+        const updated = [...imageInputs];
+        updated[cropIndex] = file;
+        setImageInputs(updated);
+        // Update preview
+        const previewUrls = [...imagePreviewUrls];
+        previewUrls[cropIndex] = URL.createObjectURL(file);
+        setImagePreviewUrls(previewUrls);
+      }
+      setCropModalOpen(false);
+      setCropIndex(null);
+    }, imageInputs[cropIndex].type);
   };
 
   const handleSubmit = async (e) => {
@@ -216,42 +261,48 @@ export default function SubmitRecipeForm() {
         )}
       </div>
 
-      <div>
-        <p className="font-semibold">Upload image(s):</p>
+      <div className="space-y-2">
+        <label className="block text-sm font-medium mb-1">Upload images:</label>
         {imageInputs.map((file, index) => {
           const isNextEmptyInput =
-            index > 0 &&
-            imageInputs[index] === null &&
-            imageInputs[index - 1] !== null;
-
+            index > 0 && imageInputs[index] === null && imageInputs[index - 1] !== null;
           return (
-            <div key={index} className="relative mt-2">
+            <div key={index} className="relative mt-2 flex items-center gap-4">
               {isNextEmptyInput && (
-                <p className="text-sm font-medium text-gray-700 mb-1">
-                  Add another image?
-                </p>
+                <p className="text-sm font-medium text-gray-700 mb-1">Add another image?</p>
               )}
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleImageChange(index, e.target.files[0])}
-                className="w-full p-2 border rounded"
+                className="w-full max-w-xs p-2 border rounded text-sm"
               />
               {file && (
-                <div className="relative inline-block mt-2">
+                <>
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={imagePreviewUrls[index]}
                     alt={`Preview ${index + 1}`}
-                    className="w-24 h-24 object-cover rounded border"
+                    className="w-24 h-24 object-cover rounded border cursor-pointer"
+                    onClick={() => {
+                      setLightboxIndex(index);
+                      setLightboxOpen(true);
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(index)}
-                    className="absolute top-[-8px] right-[-8px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    className="ml-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                   >
                     ✖
                   </button>
-                </div>
+                  <button
+                    type="button"
+                    onClick={() => openCropModal(index)}
+                    className="ml-2 bg-blue-600 text-white rounded px-2 py-1 text-xs"
+                  >
+                    Crop/Rotate
+                  </button>
+                </>
               )}
             </div>
           );
@@ -277,6 +328,60 @@ export default function SubmitRecipeForm() {
       >
         Submit Recipe
       </button>
+
+      {lightboxOpen && (
+        <Lightbox
+          open={lightboxOpen}
+          close={() => setLightboxOpen(false)}
+          index={lightboxIndex}
+          slides={imagePreviewUrls.filter(Boolean).map((src) => ({ src }))}
+          plugins={[Zoom]}
+          zoom={{ maxZoomPixelRatio: 4 }}
+        />
+      )}
+
+      {cropModalOpen && cropIndex != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full flex flex-col items-center">
+            <Cropper
+              src={imagePreviewUrls[cropIndex]}
+              style={{ height: 300, width: "100%" }}
+              // aspectRatio={1}
+              guides={true}
+              viewMode={1}
+              dragMode="move"
+              scalable={true}
+              cropBoxResizable={true}
+              cropBoxMovable={true}
+              rotatable={true}
+              onInitialized={setCropperInstance}
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={handleCrop}
+              >
+                Crop & Save
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                onClick={() => setCropModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-200 text-blue-800 rounded hover:bg-blue-300"
+                onClick={() => cropperInstance && cropperInstance.rotate(90)}
+              >
+                Rotate 90°
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
