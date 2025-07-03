@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
+import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ProductCard from "./ProductCard";
@@ -53,7 +55,17 @@ export default function NewArrivals() {
           className="w-full max-h-64 object-cover rounded shadow mb-6"
           style={{ objectPosition: 'center 40%' }}
         />
-        <h1 className="text-3xl font-bold mb-6">🆕 New Arrivals</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">🆕 New Arrivals</h1>
+          <Link
+            to="/add-item"
+            className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="sm:inline hidden">Add New Item</span>
+            <span className="inline sm:hidden">+</span>
+          </Link>
+        </div>
         <p className="mb-8">Check out the latest products added to Rater Joe's!</p>
         {loading ? null : products.length === 0 ? (
           <div className="text-center text-lg">No new arrivals at the moment.</div>
