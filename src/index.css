@@ -66,4 +66,12 @@ div[style*="background: white"][style*="border-radius: 50%"] {
   opacity: 1 !important;
   z-index: 10000 !important;
 }
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
   

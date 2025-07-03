@@ -314,7 +314,7 @@ export default function RecipeDetailPage() {
           </div>
         )}
 
-<div className="flex gap-3 mt-2">
+        <div className="flex gap-3 mt-2">
           {user?.uid === recipe.userId && (
             <button
               onClick={() => (window.location.href = `/edit-recipe/${id}`)}
@@ -324,7 +324,7 @@ export default function RecipeDetailPage() {
             </button>
           )}
 
-          {isAdmin && (
+          {(isAdmin || user?.uid === recipe.userId) && (
             <button
               disabled={deleting}
               onClick={async () => {
