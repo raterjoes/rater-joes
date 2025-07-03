@@ -4,6 +4,7 @@ import { db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 
 import ProductCard from "./ProductCard";
 
@@ -83,7 +84,17 @@ export default function Seasonal() {
           style={{ objectPosition: 'center 20%' }}
         />
 
-        <h2 className="text-2xl font-semibold mb-4">{currentSeason}</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">{currentSeason}</h2>
+          <Link
+            to="/add-item"
+            className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="sm:inline hidden">Add New Item</span>
+            <span className="inline sm:hidden">+</span>
+          </Link>
+        </div>
         <ProductGrid products={seasonalProducts[currentSeason] || []} reviewsByProduct={reviewsByProduct} />
 
         {/* Add gap before other seasons banner */}
