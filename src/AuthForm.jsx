@@ -68,13 +68,12 @@ export default function AuthForm() {
           createdAt: serverTimestamp(),
         });
 
-        // Send verification email
-        await sendVerificationEmail();
-        setIsVerifying(true);
-        setSuccess("Account created! Please check your email to verify your account.");
+        // Send verification email in the background
+        sendVerificationEmail();
         setEmail("");
         setPassword("");
         setNickname("");
+        navigate("/");
         return;
       } else if (mode === "reset") {
         await resetPassword(email);
@@ -123,38 +122,6 @@ export default function AuthForm() {
       setError(userFriendlyMessage);
     }
   };
-
-  // Show verification message if user is not verified
-  if (user && !user.emailVerified && !isVerifying) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
-          <div className="bg-white p-6 shadow rounded max-w-md mx-auto mt-6">
-            <h2 className="text-xl font-bold text-center mb-4">Email Verification Required</h2>
-            <p className="text-gray-600 mb-4">
-              Please check your email ({user.email}) and click the verification link to complete your registration.
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={handleResendVerification}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Resend Verification Email
-              </button>
-              <button
-                onClick={logout}
-                className="w-full px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Log Out
-              </button>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col min-h-screen">
