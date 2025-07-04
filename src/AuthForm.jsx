@@ -5,6 +5,37 @@ import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { Eye, EyeOff } from "lucide-react";
+
+// Function to convert Firebase error codes to user-friendly messages
+const getErrorMessage = (errorCode) => {
+  switch (errorCode) {
+    case 'auth/user-not-found':
+      return 'No account found with this email address. Please check your email or sign up for a new account.';
+    case 'auth/wrong-password':
+      return 'Incorrect password. Please try again.';
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.';
+    case 'auth/weak-password':
+      return 'Password should be at least 6 characters long.';
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists. Please log in instead.';
+    case 'auth/too-many-requests':
+      return 'Too many failed attempts. Please try again later.';
+    case 'auth/network-request-failed':
+      return 'Network error. Please check your internet connection and try again.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact support.';
+    case 'auth/invalid-credential':
+      return 'Invalid email or password. Please try again.';
+    case 'auth/operation-not-allowed':
+      return 'This operation is not allowed. Please contact support.';
+    case 'auth/requires-recent-login':
+      return 'For security reasons, please log in again.';
+    default:
+      return 'An error occurred. Please try again.';
+  }
+};
 
 export default function AuthForm() {
   const { user, login, signup, logout, resetPassword, sendVerificationEmail } = useAuth();
@@ -14,6 +45,7 @@ export default function AuthForm() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [nickname, setNickname] = useState("");
 
@@ -56,7 +88,8 @@ export default function AuthForm() {
       setNickname("");
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      const userFriendlyMessage = getErrorMessage(err.code);
+      setError(userFriendlyMessage);
     }
   };
 
@@ -65,6 +98,7 @@ export default function AuthForm() {
     setError(null);
     setSuccess(null);
     setIsVerifying(false);
+    setShowPassword(false);
     setEmail("");
     setPassword("");
     setNickname("");
@@ -75,7 +109,8 @@ export default function AuthForm() {
       await sendVerificationEmail();
       setSuccess("Verification email sent again! Check your inbox.");
     } catch (err) {
-      setError(err.message);
+      const userFriendlyMessage = getErrorMessage(err.code);
+      setError(userFriendlyMessage);
     }
   };
 
@@ -146,14 +181,23 @@ export default function AuthForm() {
               />
 
               {mode !== "reset" && (
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="w-full p-2 border rounded"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    className="w-full p-2 pr-10 border rounded"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                  </button>
+                </div>
               )}
 
               {mode === "signup" && (
