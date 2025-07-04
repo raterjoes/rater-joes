@@ -8,22 +8,34 @@ import ProductCard from "./ProductCard";
 import categories from "./categories";
 import categoryAssets from "./categoryAssets";
 
+// Helper to slugify category names for URLs
+function slugifyCategory(category) {
+  return category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
+// Build a map from slug to display name
+const slugToCategory = Object.fromEntries(categories.map(cat => [slugifyCategory(cat), cat]));
+
 export default function CategoryPage() {
   const { categoryName } = useParams();
   const [products, setProducts] = useState([]);
   const [reviewsByProduct, setReviewsByProduct] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  const decodedCategory = decodeURIComponent(categoryName);
-  const validCategory = categories.includes(decodedCategory);
-  const assets = categoryAssets[decodedCategory] || {};
+  const slug = decodeURIComponent(categoryName);
+  const displayCategory = slugToCategory[slug] || null;
+  const validCategory = !!displayCategory;
+  const assets = categoryAssets[displayCategory] || {};
 
   useEffect(() => {
     const fetchProducts = async () => {
       if (!validCategory) return;
       const q = query(
         collection(db, "products"),
-        where("category", "==", decodedCategory),
+        where("category", "==", displayCategory),
         where("approved", "==", true)
       );
       const snapshot = await getDocs(q);
@@ -34,7 +46,7 @@ export default function CategoryPage() {
       setProducts(productList);
     };
     fetchProducts();
-  }, [decodedCategory, validCategory]);
+  }, [displayCategory, validCategory]);
 
   useEffect(() => {
     // Fetch all reviews and group by productId
@@ -70,12 +82,12 @@ export default function CategoryPage() {
               {assets.headerImage && (
                 <img
                   src={assets.headerImage}
-                  alt={`${decodedCategory} banner`}
+                  alt={`${displayCategory} banner`}
                   className="w-full aspect-[5/1] object-cover rounded mb-6"
                 />
               )}
 
-              <h1 className="text-3xl font-bold mb-4">{decodedCategory}</h1>
+              <h1 className="text-3xl font-bold mb-4">{displayCategory}</h1>
 
               {/* ✅ Search Bar + Add Item */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
@@ -87,7 +99,7 @@ export default function CategoryPage() {
                   className="flex-grow px-6 py-3 text-lg border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
                 />
                 <Link
-                  to={`/add-item?category=${encodeURIComponent(decodedCategory)}`}
+                  to={`/add-item?category=${encodeURIComponent(displayCategory)}`}
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 whitespace-nowrap"
                 >
                   + Add New Item
@@ -110,6 +122,7 @@ export default function CategoryPage() {
                       seasonal={product.seasonal}
                       season={product.season}
                       newUntil={product.newUntil}
+                      fromCategory={displayCategory}
                     />
                   ))}
                 </div>
@@ -120,7 +133,7 @@ export default function CategoryPage() {
               {assets.footerImage && (
                 <img
                   src={assets.footerImage}
-                  alt={`${decodedCategory} footer`}
+                  alt={`${displayCategory} footer`}
                   className="w-full aspect-[5/1] object-cover rounded mt-8"
                 />
               )}

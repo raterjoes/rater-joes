@@ -12,6 +12,7 @@ export default function ProductCard({
   seasonal,
   season,
   newUntil,
+  fromCategory,
 }) {
   const averageRating = reviews.length
     ? (
@@ -39,6 +40,7 @@ export default function ProductCard({
     <Link
       to={`/products/${productId}`}
       className="relative block bg-white rounded-md shadow p-2 transform hover:scale-105 hover:shadow-xl hover:ring-1 hover:ring-rose-300 transition-all duration-300 text-xs"
+      {...(fromCategory ? { state: { fromCategory } } : {})}
     >
       <div className="relative mb-3 w-full h-32 overflow-hidden rounded">
         {isNew && (

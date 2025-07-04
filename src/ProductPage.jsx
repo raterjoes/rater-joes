@@ -39,6 +39,7 @@ import React from "react";
 import { Helmet } from "react-helmet-async";
 import { saveProduct, unsaveProduct, getSavedProductIds } from './utils/savedListUtils';
 import EditReviewForm from "./EditReviewForm";
+import categories from "./categories";
 
 function UniversalWhatsappShareButton({ url }) {
   const handleClick = (e) => {
@@ -56,6 +57,14 @@ function UniversalWhatsappShareButton({ url }) {
       <WhatsappIcon size={32} round />
     </button>
   );
+}
+
+// Helper to slugify category names for URLs
+function slugifyCategory(category) {
+  return category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
 }
 
 export default function ProductPage() {
@@ -80,6 +89,8 @@ export default function ProductPage() {
   const [editingReviewId, setEditingReviewId] = useState(null);
 
   const storage = getStorage();
+
+  const fromCategory = location.state?.fromCategory;
 
   const fetchProduct = async () => {
     try {
@@ -294,6 +305,15 @@ export default function ProductPage() {
 
       <main className="flex-grow">
         <div className="max-w-4xl mx-auto px-6 py-8">
+          {/* Back to Category Button */}
+          {fromCategory && (
+            <Link
+              to={`/category/${slugifyCategory(fromCategory)}`}
+              className="inline-block mt-0 mb-3 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300"
+            >
+              ← Back to {fromCategory}
+            </Link>
+          )}
           {/* Product Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-8">
             <div>

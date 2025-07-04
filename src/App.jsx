@@ -31,6 +31,14 @@ import ProductCard from "./ProductCard";
 import NewActivityWindow from "./NewActivityWindow";
 import usePageTracking from "./usePageTracking";
 
+// Helper to slugify category names for URLs
+function slugifyCategory(category) {
+  return category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
 export default function App() {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
@@ -237,7 +245,7 @@ export default function App() {
                 </div>
                 <div className="mt-3 text-center">
                   <Link
-                    to={`/category/${encodeURIComponent(cat)}`}
+                    to={`/category/${slugifyCategory(cat)}`}
                     className="inline-block px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900 text-sm"
                   >
                     View All
@@ -329,7 +337,7 @@ function CategorySection({ id, title, products, onReviewSubmit, user, reviewsByP
           </div>
           <div className="mt-4 text-center">
             <Link
-              to={`/category/${encodeURIComponent(title)}`}
+              to={`/category/${slugifyCategory(title)}`}
               className="inline-block px-4 py-2 bg-rose-800 text-white rounded hover:bg-rose-900"
             >
               View All

@@ -4,6 +4,14 @@ import Footer from "./Footer";
 import categories from "./categories";
 import categoryAssets from "./categoryAssets"; // optional for images
 
+// Helper to slugify category names for URLs
+function slugifyCategory(category) {
+  return category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
 export default function AllCategoriesPage() {
   return (
     <div className="min-h-screen flex flex-col bg-orange-50 text-gray-900">
@@ -19,7 +27,7 @@ export default function AllCategoriesPage() {
             return (
               <Link
                 key={category}
-                to={`/category/${encodeURIComponent(category)}`}
+                to={`/category/${slugifyCategory(category)}`}
                 className="group block bg-white rounded-lg shadow hover:shadow-md transition p-3 text-center"
               >
                 {image ? (
