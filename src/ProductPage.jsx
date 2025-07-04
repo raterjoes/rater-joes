@@ -38,6 +38,7 @@ import { useState as useCopyState } from "react";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { saveProduct, unsaveProduct, getSavedProductIds } from './utils/savedListUtils';
+import EditReviewForm from "./EditReviewForm";
 
 function UniversalWhatsappShareButton({ url }) {
   const handleClick = (e) => {
@@ -76,6 +77,7 @@ export default function ProductPage() {
   const [copied, setCopied] = useCopyState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState(null);
 
   const storage = getStorage();
 
@@ -272,6 +274,11 @@ export default function ProductPage() {
   }
 
   const shareUrl = `https://rater-joes-next.vercel.app/product/${id}`;
+
+  const handleReviewUpdate = (updatedReviewId) => {
+    setEditingReviewId(null);
+    fetchProduct();
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans">
@@ -498,46 +505,66 @@ export default function ProductPage() {
                   key={r.id}
                   className="bg-white p-4 rounded border border-gray-200 shadow-sm mb-4"
                 >
-                  <div className="font-bold text-yellow-500 text-lg mb-1">
-                    {r.rating} ⭐
-                  </div>
-                  <p className="text-gray-800">{r.text}</p>
+                  {editingReviewId === r.id ? (
+                    <EditReviewForm
+                      review={r}
+                      onCancel={() => setEditingReviewId(null)}
+                      onSave={() => handleReviewUpdate(r.id)}
+                    />
+                  ) : (
+                    <>
+                      <div className="font-bold text-yellow-500 text-lg mb-1">
+                        {r.rating} ⭐
+                      </div>
+                      <p className="text-gray-800">{r.text}</p>
 
-                  {r.images?.length > 0 && (
-                    <div className="flex gap-2 mt-3 overflow-x-auto">
-                      {r.images.map((img, imgIdx) => (
-                        <img
-                          key={imgIdx}
-                          src={img.url}
-                          alt={`Review Image ${imgIdx + 1}`}
-                          onClick={() => {
-                            setReviewLightboxImages(r.images.map((img) => img.url));
-                            setReviewLightboxIndex(imgIdx);
-                            setReviewLightboxOpen(true);
-                          }}
-                          className="w-24 h-24 object-cover rounded cursor-pointer border"
-                        />
-                      ))}
-                    </div>
-                  )}
+                      {r.images?.length > 0 && (
+                        <div className="flex gap-2 mt-3 overflow-x-auto">
+                          {r.images.map((img, imgIdx) => (
+                            <img
+                              key={imgIdx}
+                              src={img.url}
+                              alt={`Review Image ${imgIdx + 1}`}
+                              onClick={() => {
+                                setReviewLightboxImages(r.images.map((img) => img.url));
+                                setReviewLightboxIndex(imgIdx);
+                                setReviewLightboxOpen(true);
+                              }}
+                              className="w-24 h-24 object-cover rounded cursor-pointer border"
+                            />
+                          ))}
+                        </div>
+                      )}
 
-                  {user && user.email === r.userEmail && r._hasPendingImages && (
-                    <p className="text-xs text-yellow-600 italic mt-2">
-                      🕓 Images pending review
-                    </p>
-                  )}
+                      {user && user.email === r.userEmail && r._hasPendingImages && (
+                        <p className="text-xs text-yellow-600 italic mt-2">
+                          🕓 Images pending review
+                        </p>
+                      )}
 
-                  <p className="text-xs italic text-gray-500 mt-2">
-                    by {r.nickname || r.userEmail || "Anonymous"}
-                  </p>
+                      <p className="text-xs italic text-gray-500 mt-2">
+                        by {r.nickname || r.userEmail || "Anonymous"}
+                      </p>
 
-                  {(isAdmin || (user && (user.email === r.userEmail || user.uid === r.userId))) && (
-                    <button
-                      onClick={() => handleDeleteReview(r.id)}
-                      className="text-red-600 text-xs mt-2 hover:underline"
-                    >
-                      🗑️ Delete Review
-                    </button>
+                      {(isAdmin || (user && (user.email === r.userEmail || user.uid === r.userId))) && (
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => handleDeleteReview(r.id)}
+                            className="text-red-600 text-xs hover:underline"
+                          >
+                            🗑️ Delete Review
+                          </button>
+                          {user && (user.email === r.userEmail || user.uid === r.userId) && (
+                            <button
+                              onClick={() => setEditingReviewId(r.id)}
+                              className="text-blue-600 text-xs hover:underline"
+                            >
+                              ✏️ Edit Review
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ))
