@@ -88,7 +88,17 @@ export default function AuthForm() {
       setNickname("");
       navigate("/");
     } catch (err) {
-      const userFriendlyMessage = getErrorMessage(err.code);
+      // Debug log to help diagnose error codes
+      console.log('Firebase error:', err.code, err.message);
+      let userFriendlyMessage = getErrorMessage(err.code);
+      // Fallback if the error code is not recognized
+      if (!userFriendlyMessage || userFriendlyMessage === 'An error occurred. Please try again.') {
+        if (err.message && err.message.includes('email-already-in-use')) {
+          userFriendlyMessage = 'An account with this email already exists. Please log in instead.';
+        } else {
+          userFriendlyMessage = 'An error occurred. Please try again.';
+        }
+      }
       setError(userFriendlyMessage);
     }
   };
@@ -263,6 +273,18 @@ export default function AuthForm() {
                   </>
                 )}
               </p>
+
+              {mode === "signup" && (
+                <p className="text-sm text-center mt-2">
+                  <button
+                    type="button"
+                    className="text-blue-600 underline"
+                    onClick={() => handleModeChange("reset")}
+                  >
+                    Forgot Password?
+                  </button>
+                </p>
+              )}
             </form>
           )}
         </div>
